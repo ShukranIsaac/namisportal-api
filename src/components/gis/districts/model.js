@@ -13,7 +13,11 @@ const DistrictSchema = new Schema(
         ],
         polygons: [
             { type: Schema.Types.ObjectId, ref: 'Polygon' }
-        ]
+        ],
+        centroids: {
+            lat: Number,
+            lng: Number
+        }
     },
     {collection: 'district'}
 );

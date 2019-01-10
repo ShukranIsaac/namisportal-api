@@ -13,11 +13,15 @@ router.post('/', (req, res, next) => {
 
    
 
-    const { name } = req.body
+    const { name, lat, lng } = req.body
 
     const district = {
         properties: {
             name
+        },
+        centroids: {
+            lat,
+            lng
         }
     }
 
