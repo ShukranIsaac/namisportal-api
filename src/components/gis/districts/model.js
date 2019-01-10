@@ -1,16 +1,21 @@
 const mongooseStringQuery = require('mongoose-string-query')
 const Schema = require('mongoose').Schema
 const mongoose = require('mongoose');
-const MarepCenterSchema = require('../marep-centers/model')
+//const MarepCenterSchema = require('../marep-centers/model')
 
 const DistrictSchema = new Schema(
     {
         properties: {
             name: String
         },
-        marepCenters: [MarepCenterSchema]
+        marepCenters: [
+            { type: Schema.Types.ObjectId, ref: 'MarepCenter' }
+        ],
+        polygons: [
+            { type: Schema.Types.ObjectId, ref: 'Polygon' }
+        ]
     },
-    {collection: 'marep-centres'}
+    {collection: 'district'}
 );
 
 DistrictSchema.plugin(mongooseStringQuery)

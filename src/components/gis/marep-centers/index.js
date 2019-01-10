@@ -4,9 +4,21 @@ const express = require('express')
 const router = express.Router()
 
 router.post('/', (req, res, next) => {
+
+    const { _type, lat, lng, name } = req.body
+
+    const center = {
+        properties: { name },
+        geometry: {
+            _type,
+            coordinates: {lat, lng}
+        }
+    }
+
     const data = req.body;
-    console.log(req.body)
-    MarepCenter.create(data)
+    console.log(center)
+    //res.send('oki')
+    MarepCenter.create(center)
         .then(center => res.json(center))
         .catch(err => res.status(500).send(err))
 })

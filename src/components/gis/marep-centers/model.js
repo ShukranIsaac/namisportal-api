@@ -14,7 +14,7 @@ const MarepCenterSchema = new Schema(
             }
         },
         geometry: {
-            type: String,
+            _type: String,
             coordinates: {lng: Number, lat: Number}
         }
     },
