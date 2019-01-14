@@ -5,7 +5,9 @@ const dotenv = require('dotenv')
 const cors = require('cors')
 
 const marepCenters = require('./components/gis/marep-centers')
-const districts = require('./components/gis/districts')
+const districts = require('./components/gis/districts/index.experiment')
+
+//const routes = require('./routes')
 const db = mongoose.connection;
 
 const app = express();
@@ -13,11 +15,14 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-//app.use(cors)
+//app.use(cors())
+
+//app.use(routes)
+
+ app.use('/marep-centers', marepCenters);
+ app.use('/districts', districts)
 
 
-app.use('/marep-centers', marepCenters);
-app.use('/districts', districts)
 
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', () =>  console.info('connekitedi'));

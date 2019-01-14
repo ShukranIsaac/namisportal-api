@@ -29,6 +29,16 @@ router.get('/', (req, res, next) => {
         .catch(err => res.status(500).send(err))
 })
 
+router.get('/:uid', (req, res) => {
+    const { uid } = req.params
+
+    MarepCenter.findById(uid)
+        .then(center => {
+            res.json(center)
+        })
+})
+
+
 module.exports = router
 
 

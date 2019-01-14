@@ -7,7 +7,7 @@ const PolygonSchema = new Schema(
         geometry: {
             _type: String,
             coordinates: [
-                { lat: Number, lng: Number}
+                [{ lat: Number, lng: Number}]
             ]
         }
     },

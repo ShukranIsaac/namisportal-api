@@ -4,7 +4,8 @@
   "description": "test backend",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon src"
+    "start": "nodemon src",
+    "migrate": "node src/migrations"
   },
   "author": "Paul Sembereka",
   "license": "MIT",
