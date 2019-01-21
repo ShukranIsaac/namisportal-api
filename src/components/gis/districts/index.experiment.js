@@ -8,10 +8,10 @@
 // compresss json response
 // make goodly README file
 // find out how to draww directory structure
-
 const District = require('./model')
 const Polygon = require('../polygons/model')
 const MarepCenter = require('../marep-centers/model')
+const DistributionLines = require('../distribution-lines/model')
 const express = require('express')
 
 const fs = require("fs");
@@ -45,21 +45,42 @@ router.post('/', (req, res, next) => {
         { path: 'marepCenters', select: 'geometry' }
       , { path: 'polygons' }
     ]
-    District.find({})
-        .then(districts => {
-            console.log(districts)
-            res.json(districts)
-        })
+    const {query: {name, marep, polygons}} = req
+    
+    if (name !== undefined){
+        District.find({properties: {name}})
+        .then(districts => res.json(districts))
         .catch(err => res.status(500).send(err))
+    }else{
+        District.find({})
+            .then(districts => {
+                res.json(districts)
+            })
+            .catch(err => res.status(500).send(err))
+    }
+    
 })
 
-router.get('/:uid/marep-centers', (req, res) => {
+function createPopulationOptions(options, additionalOption){
+    return {...options, additionalOption}
+}
+
+/*router.get('/:uid/marep-centers', (req, res) => {
     const { uid } = req.params
 
     District.findById(uid)
         .populate('marepCenters')
         .then(district => {
             res.json(district.marepCenters)
+        })
+})*/
+
+router.get('/:name/marep-centers', (req, res) => {
+    const { name } = req.params
+    District.find({properties: {name}})
+        .populate('marepCenters')
+        .then(district => {
+            res.json(district)
         })
 })
 
@@ -68,13 +89,15 @@ router.get('/:uid', (req, res) => {
     const opts = [
         { path: 'marepCenters', select: 'geometry' }
       , { path: 'polygons', select: 'geometry' }
+      , { path: 'distributionLines', select: 'geometry' }
     ]
 
     District.findById(uid)
-        .populate(opts)
+        //.populate(opts)
         .then(district => {
             res.json(district)
         })
+        .catch(err => res.status(500).send(err))
 })
 
 router.post('/:uid/marep-centers/:muid', (req, res, next) => {
@@ -122,6 +145,30 @@ router.get('/:uid/polygons/:puid', (req, res) => {
         .catch(err => res.status(500).send(err))
 })
 
+router.get('/:uid/distribution-lines/:puid', (req, res) => {
+    const { uid, puid} = req.params;
+
+    DistributionLines.findById(puid)
+        .then( polygon => {
+            console.log(polygon)
+            return res.json(polygon)
+        } )
+        .catch(err => res.status(500).send(err))
+})
+
+router.get('/:uid/distribution-lines', (req, res) => {
+    const { uid } = req.params
+
+    District.findById(uid)
+        .populate('distributionLines')
+        .then(district => {
+            res.json(district.distributionLines)
+        })
+        .catch(err => res.status(500).send(err))
+})
+
+
+
 router.post('/:uid/polygons', async (req, res, next) => {
     console.log(req.params);
     //res.send('oki')
@@ -143,8 +190,6 @@ router.post('/:uid/polygons', async (req, res, next) => {
 
 router.post('/:uid/marep-centers', async (req, res) => {
     const { uid } = req.params;
-
-
     const { _id } = await MarepCenters.create({geometry: docPolygon})
 })
 

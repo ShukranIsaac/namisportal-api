@@ -10,12 +10,17 @@
   "author": "Paul Sembereka",
   "license": "MIT",
   "dependencies": {
+    "JSONStream": "^1.3.5",
     "body-parser": "^1.18.3",
+    "co": "^4.6.0",
     "cors": "^2.8.5",
     "dotenv": "^6.2.0",
+    "event-stream": "^4.0.1",
     "express": "^4.16.4",
     "mongoose": "^5.4.2",
     "mongoose-string-query": "^0.2.5",
+    "querymen": "^2.1.3",
+    "stream-reduce": "^1.0.3",
     "uuid": "^3.3.2"
   }
 }

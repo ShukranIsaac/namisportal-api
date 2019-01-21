@@ -17,7 +17,10 @@ const DistrictSchema = new Schema(
         centroids: {
             lat: Number,
             lng: Number
-        }
+        },
+        distributionLines: [
+            { type: Schema.Types.ObjectId, ref: 'DistributionLines' }
+        ]
     },
     {collection: 'district'}
 );
