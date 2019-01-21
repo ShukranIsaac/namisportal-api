@@ -48,6 +48,7 @@ router.post('/', (req, res, next) => {
     const {query: {name}} = req
     if (name !== undefined){
         District.find({properties: {name}})
+        .populate('polygons')
         .then(districts => res.json(districts[0]))
         .catch(err => res.status(500).send(err))
     }else{
