@@ -45,11 +45,10 @@ router.post('/', (req, res, next) => {
         { path: 'marepCenters', select: 'geometry' }
       , { path: 'polygons' }
     ]
-    const {query: {name, marep, polygons}} = req
-    
+    const {query: {name}} = req
     if (name !== undefined){
         District.find({properties: {name}})
-        .then(districts => res.json(districts))
+        .then(districts => res.json(districts[0]))
         .catch(err => res.status(500).send(err))
     }else{
         District.find({})
@@ -60,10 +59,6 @@ router.post('/', (req, res, next) => {
     }
     
 })
-
-function createPopulationOptions(options, additionalOption){
-    return {...options, additionalOption}
-}
 
 /*router.get('/:uid/marep-centers', (req, res) => {
     const { uid } = req.params
@@ -80,7 +75,7 @@ router.get('/:name/marep-centers', (req, res) => {
     District.find({properties: {name}})
         .populate('marepCenters')
         .then(district => {
-            res.json(district)
+            res.json(district.marepCenters)
         })
 })
 
@@ -114,6 +109,18 @@ router.post('/:uid/marep-centers/:muid', (req, res, next) => {
                 .then(center => res.json(center))
                 .catch(err => res.status(500).send(err))
         })
+        .catch(err => res.status(500).send(err))
+})
+
+router.get('/:uid/polygons', (req, res) => {
+    const { uid, puid} = req.params;
+
+    District.findById(uid)
+        .populate('polygons')
+        .then( district => {
+            console.log(district.polygons)
+            return res.json(district.polygons)
+        } )
         .catch(err => res.status(500).send(err))
 })
 

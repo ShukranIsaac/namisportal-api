@@ -28,39 +28,19 @@ const Polygon = require('../components/gis/polygons/model')
 
 const districts = ['Chitipa', 'Karonga', 'Likoma', 'Mzimba', 'Nkhatabay', 'Rumphi', 'Dedza', 'Dowa', 'Kasungu', 'Lilongwe', 'Mchinji', 'Nkhotakota', 'Ntcheu', 'Ntchisi', 'Salima', 'Balaka', 'Blantyre', 'Chikwawa', 'Chiradzulu', 'Machinga', 'Mangochi', 'Mulanje', 'Mwanza', 'Neno', 'Nsanje', 'Phalombe', 'Thyolo', 'Zomba']
 
-const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
-const districtDistLines =  mapLinesToDistrict(districts, transformedDistLines)
+// const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
+// const districtDistLines =  mapLinesToDistrict(districts, transformedDistLines)
 
 //const mappedCenters = mapCenters(marepCenters.features)
 //mapCentersToDistrict(districts, mappedCenters)
 
-//const polygs = transformPolygons(parsedDistrictPolygons.features)
-//polgonsToMongo(districts, polygs)
+const polygs = transformPolygons(parsedDistrictPolygons.features)
+polgonsToMongo(districts, polygs)
 
 // // const cleanedDistricts = cleanDistricts(parsedDistricts)
 //const mongoDistricts = districtsToMongo(parsedDistricts)
 
 //console.log(mongoDistricts)
-
- 
-//  getStream(__dirname + '/distribution_lines.geojson')
-//     .pipe(reduce((newData, data) => {
-        
-//        //const transformedDistLines = transformDistributionLines(data)
-//        //const newd = JSON.parse(data)
-//        newData.push(data)
-//        return newData
-//     }, []))
-//     .on('data', function(data) {
-        
-//         const  transformedDistLines = transformDistributionLines(data)
-//         const districtDistLines =  mapLinesToDistrict(districts, transformedDistLines)
-//         //console.log(transformedDistLines)
-//     })
-//     .on('error', function (err){
-//     // handle any errors
-//  });
-
 
 
 function mapCenters(centers){
@@ -243,36 +223,53 @@ function mapLinesToDistrict(districts, lines){
             //console.log(districtlines[0].geometry.coordinates)
 
             try {
-                return  districtlines.map(async line => {
-                    await DistributionLines.collection.insertOne(line, (err, {ops: [{_id, properties}]})=>{
-                        //console.log(properties)
-                            co(function*() {
-                                const districtCursor = District.find({properties: {name: district}}).cursor()
-                                for (let doc = yield districtCursor.next(); doc != null; doc = yield districtCursor.next()) {
-                                    doc.distributionLines.push({_id})
-                                    doc.save()
-                                    console.log(doc)
-                                    delete db.collections['district'];
-                                }
+                DistributionLines.collection.insertMany(districtlines, (err, docs) => {
+                    if (err) throw new Error(err)
+                    const values = Object.values(docs.insertedIds)
 
-                                    
-                            })
+                    co(function*() {
+                        const districtCursor = District.find({properties: {name: district}}).limit(1).cursor()
+                        for (let doc = yield districtCursor.next(); doc != null; doc = yield districtCursor.next()) {
+                            doc.distributionLines.push(...values)
+                            doc.save()
+                            console.log(doc)
+                        }
                             
-                            // var stream = District.find({properties: {name: district}}).lean().stream();   // however you call
-
-                            // stream.on("data", (doc) => {
-                            //     // call pause on entry
-                            //     //stream.pause();
-                            //     doc.distributionLines.push({_id})
-                            //     doc.save()
-                            //     console.log(doc)
-                            //     // do processing
-                            //    // stream.resume();            // then resume when done
-                            // }).on('finish', () => console.log('finished'))
-                        
                     })
-                    
+
                 })
+                // return  districtlines.map(async line => {
+                    
+                //     await DistributionLines.collection.insertOne(line, (err, {ops: [{_id, properties}]})=>{
+                //         //console.log(properties)
+                //             co(function*() {
+                //                 const districtCursor = District.find({properties: {name: district}}).limit(1).cursor()
+                //                 for (let doc = yield districtCursor.next(); doc != null; doc = yield districtCursor.next()) {
+                //                     doc.distributionLines.push({_id})
+                //                     doc.save()
+                //                     console.log(doc)
+                //                     delete db.collections['district'];
+                //                 }
+                //                 delete db.collections['distribution_lines']
+                                    
+                //             })
+                           
+                            
+                //             // var stream = District.find({properties: {name: district}}).lean().stream();   // however you call
+
+                //             // stream.on("data", (doc) => {
+                //             //     // call pause on entry
+                //             //     //stream.pause();
+                //             //     doc.distributionLines.push({_id})
+                //             //     doc.save()
+                //             //     console.log(doc)
+                //             //     // do processing
+                //             //    // stream.resume();            // then resume when done
+                //             // }).on('finish', () => console.log('finished'))
+                        
+                //     })
+                    
+                // })
             }
             catch(error){
                 console.error(error)
