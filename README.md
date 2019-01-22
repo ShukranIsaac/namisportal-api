@@ -159,14 +159,6 @@ the response will be something like this:
 ]
 ```
 
-### Querying for distrtict distribution lines
-
-Here is an **example** of how to query for region distribution in url under the ***/regions/:uid/distribution-lines***endpoint
-
-```
-/regions/5c45a346f2320d359c3aa93e/distribution-lines
-```
-
 ## Calling District Endpoints
 Here is an **example** of how to query for district name in url under the ***/districts*** endpoint
 ```
