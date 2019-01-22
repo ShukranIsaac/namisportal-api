@@ -13,7 +13,6 @@ const TransformerSchema = new Schema(
             manufacturer: String,
             district: String,
             region: String,
-            name: String,
             feature: String,
             primary: String,
             position: String,

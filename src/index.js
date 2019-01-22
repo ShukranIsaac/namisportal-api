@@ -5,6 +5,7 @@ const dotenv = require('dotenv')
 const cors = require('cors')
 
 const regions = require('./components/gis/regions')
+const transformers = require('./components/gis/transformers')
 const marepCenters = require('./components/gis/marep-centers')
 const districts = require('./components/gis/districts/index.experiment')
 
@@ -21,6 +22,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 //app.use(routes)
 
  app.use('/marep-centers', marepCenters);
+ app.use('/transformers', transformers)
  app.use('/districts', districts)
  app.use('/regions', regions)
 

@@ -15,6 +15,9 @@ const parsedDistricts = JSON.parse(districtsJSON)
 const districtPolygonsJSON = fs.readFileSync(__dirname + '/districts.json')
 const parsedDistrictPolygons = JSON.parse(districtPolygonsJSON)
 
+const transformersJSON = fs.readFileSync(__dirname + '/transformers.geojson')
+const parsedTransformers = JSON.parse(transformersJSON)
+
 const distributionLinesJSON= fs.readFileSync(__dirname + '/distribution_lines.geojson')
 const parsedDistributionLines = JSON.parse(distributionLinesJSON)
 
@@ -24,6 +27,7 @@ mongoose.connect('mongodb://localhost/test', { useNewUrlParser: true })
 
 const DistributionLines = require('../components/gis/distribution-lines/model')
 const MarepCenter = require('../components/gis/marep-centers/model')
+const Transformer = require('../components/gis/transformers/model')
 const District = require('../components/gis/districts/model')
 const Polygon = require('../components/gis/polygons/model')
 const Region = require('../components/gis/regions/model')
@@ -61,11 +65,12 @@ const regionDistricts = [
 
 //console.log(mongoDistricts)
 
-const polygs = transformRegionPolygons(parsedRegionPolygons.features)
-regionPolgonsToMongo(polygs)
+// const polygs = transformRegionPolygons(parsedRegionPolygons.features)
+// regionPolgonsToMongo(polygs)
 
 //mapDistrictsToRegions(regionDistricts)
-
+const mappedTransformers = mapTransformers(parsedTransformers.features)
+mapTransformersToDistrict(districts, mappedTransformers)
 
 //regionsToMongo(regionDistricts)
 
@@ -86,7 +91,6 @@ function mapTransformers(transformers){
                 yearManufactured: transformer.properties.YearMan44,
                 manufacturer: transformer.properties.Manufact41,
                 district, region,
-                name: transformer.properties.Feeder6,
                 feature: 'Point',
                 primary: transformer.properties.Primary10,
                 position: transformer.properties.position27,
@@ -109,6 +113,25 @@ function mapTransformers(transformers){
     })
 }
 
+function mapTransformersToDistrict(districts, transformers){
+    return districts.map((district) => {
+        const districtTransformers = transformers.filter((transformer) => transformer.properties.district === district)
+        
+        Transformer.collection.insertMany(districtTransformers, (err, {insertedIds}) => {
+            if (err) throw new Error(err)
+            const values = Object.values(insertedIds)
+
+            District.findOne({properties: {name: district}})
+                .then(districtFromMongo => {
+                    districtFromMongo.transformers.push(...values)
+                    districtFromMongo.save()
+                        .then(saved => console.log(saved))
+                        .catch(err => console.error(err))
+                })
+                .catch(err => console.error(err))
+        })
+    })
+}
 
 // marep centers stuffioes
 function mapCenters(centers){
@@ -342,9 +365,9 @@ function regionPolgonsToMongo(polygons){
         const reducedPolygons = reduceMult(polygons)
         const regionPolygons = reducedPolygons.filter((polygon) => polygon.region === region)
         
-        return Polygon.collection.insertMany(regionPolygons, (err, polygs) => {
+        return Polygon.collection.insertMany(regionPolygons, (err, {insertedIds}) => {
                 if (err) throw new Error(err)
-                const values = Object.values(polygs.insertedIds)
+                const values = Object.values(insertedIds)
                 
                 Region.find({properties: {name: region}}).limit(1)
                 .then(region => {

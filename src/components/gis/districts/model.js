@@ -20,6 +20,9 @@ const DistrictSchema = new Schema(
         },
         distributionLines: [
             { type: Schema.Types.ObjectId, ref: 'DistributionLines' }
+        ],
+        transformers: [
+            { type: Schema.Types.ObjectId, ref: 'Transformer'}
         ]
     },
     {collection: 'district'}
