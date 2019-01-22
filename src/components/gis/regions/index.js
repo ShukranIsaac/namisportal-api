@@ -16,8 +16,13 @@ router.get('/', (req, res) => {
 
 router.get('/:uid', (req, res) => {
     const { uid } = req.params
+    const opts = [
+        { path: 'polygons', select: 'geometry' },
+        { path: 'districts', select: 'properties' }
+    ]
+
     return Region.findById(uid)
-            .populate('polygons')
+            .populate(opts)
             .then(region => res.json(region))
 })
 

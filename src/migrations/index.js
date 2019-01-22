@@ -68,6 +68,49 @@ regionPolgonsToMongo(polygs)
 
 
 //regionsToMongo(regionDistricts)
+
+
+//transformers stuffies
+function mapTransformers(transformers){
+    return transformers.map((transformer) => {
+
+        const { geometry: { type , coordinates}, properties: {region, district} } = transformer
+        const newCoordinate =  mapCoordinates(coordinates)
+        
+        const transformerObj = {
+            properties: {
+                station: transformer.properties.Station8,
+                mass: transformer.properties['mass(kg)28'],
+                voltage: transformer.properties.Voltage38,
+                MVARating: transformer.properties.MVARati40,
+                yearManufactured: transformer.properties.YearMan44,
+                manufacturer: transformer.properties.Manufact41,
+                district, region,
+                name: transformer.properties.Feeder6,
+                feature: 'Point',
+                primary: transformer.properties.Primary10,
+                position: transformer.properties.position27,
+                feeder: transformer.properties.Feeder6,
+                location: transformer.properties.Location46,
+                barcode: transformer.properties.Barcode25,
+                serialNumber: transformer.properties.SerialN32,
+                cooling: transformer.properties.cooling22,
+                SSNumber: transformer.properties.SSNumbe12,
+                summable: transformer.properties.Summable14,
+                oilVolume: transformer.properties.oilVolu21
+            },
+            geometry: {
+                _type: type,
+                coordinates: newCoordinate
+            }
+        }
+
+        return transformerObj
+    })
+}
+
+
+// marep centers stuffioes
 function mapCenters(centers){
     return centers.map((center) => {
 
@@ -118,7 +161,7 @@ function mapCentersToDistrict(districts, centers){
 }
 
 
-
+// Regions stuffies
 function cleanRegions( regions ) {
     return regions.map(({name}) => { 
         return {properties: {name}}
@@ -300,6 +343,7 @@ function regionPolgonsToMongo(polygons){
         const regionPolygons = reducedPolygons.filter((polygon) => polygon.region === region)
         
         return Polygon.collection.insertMany(regionPolygons, (err, polygs) => {
+                if (err) throw new Error(err)
                 const values = Object.values(polygs.insertedIds)
                 
                 Region.find({properties: {name: region}}).limit(1)
