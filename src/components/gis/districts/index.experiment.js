@@ -73,10 +73,11 @@ router.post('/', (req, res, next) => {
 
 router.get('/:name/marep-centers', (req, res) => {
     const { name } = req.params
-    District.find({properties: {name}})
+    //res.json(name)
+    District.find({properties: {name: name}}).limit()
         .populate('marepCenters')
         .then(district => {
-            res.json(district.marepCenters)
+            res.json(district[0].marepCenters)
         })
 })
 

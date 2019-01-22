@@ -4,6 +4,7 @@ const express = require('express')
 const dotenv = require('dotenv')
 const cors = require('cors')
 
+const regions = require('./components/gis/regions')
 const marepCenters = require('./components/gis/marep-centers')
 const districts = require('./components/gis/districts/index.experiment')
 
@@ -21,6 +22,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
  app.use('/marep-centers', marepCenters);
  app.use('/districts', districts)
+ app.use('/regions', regions)
 
 
 

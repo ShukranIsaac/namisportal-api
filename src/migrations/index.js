@@ -6,6 +6,9 @@ const db = mongoose.connection;
 const marepCentersJSON = fs.readFileSync(__dirname + '/marep.json')
 const marepCenters = JSON.parse(marepCentersJSON)
 
+const regionsJSON = fs.readFileSync(__dirname + '/regions.json')
+const parsedRegionPolygons = JSON.parse(regionsJSON)
+
 const districtsJSON = fs.readFileSync(__dirname + '/d_centroids.json')
 const parsedDistricts = JSON.parse(districtsJSON)
 
@@ -23,10 +26,26 @@ const DistributionLines = require('../components/gis/distribution-lines/model')
 const MarepCenter = require('../components/gis/marep-centers/model')
 const District = require('../components/gis/districts/model')
 const Polygon = require('../components/gis/polygons/model')
+const Region = require('../components/gis/regions/model')
 
 //MarepCenter.collection.drop();
 
 const districts = ['Chitipa', 'Karonga', 'Likoma', 'Mzimba', 'Nkhatabay', 'Rumphi', 'Dedza', 'Dowa', 'Kasungu', 'Lilongwe', 'Mchinji', 'Nkhotakota', 'Ntcheu', 'Ntchisi', 'Salima', 'Balaka', 'Blantyre', 'Chikwawa', 'Chiradzulu', 'Machinga', 'Mangochi', 'Mulanje', 'Mwanza', 'Neno', 'Nsanje', 'Phalombe', 'Thyolo', 'Zomba']
+const regionDistricts = [
+    {
+      name: "Northern Region",
+      districts: ["Chitipa","Karonga","Rumphi","Mzimba","Nkhatabay","Likoma"]
+    },
+    {
+      name: "Central Region",
+      districts: ["Lilongwe","Kasungu","Dowa","Mchinji","Ntchisi","Dedza","Ntcheu","Nkhotakota","Salima"]
+    },
+    {
+      name: "Southern Region",
+      districts: ["Blantyre","Chikwawa","Chiradzulu","Mulanje","Mwanza","Nsanje","Phalombe","Thyolo","Neno","Balaka","Machinga","Mangochi","Zomba"]
+    },
+  ];
+
 
 // const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
 // const districtDistLines =  mapLinesToDistrict(districts, transformedDistLines)
@@ -34,15 +53,21 @@ const districts = ['Chitipa', 'Karonga', 'Likoma', 'Mzimba', 'Nkhatabay', 'Rumph
 //const mappedCenters = mapCenters(marepCenters.features)
 //mapCentersToDistrict(districts, mappedCenters)
 
-const polygs = transformPolygons(parsedDistrictPolygons.features)
-polgonsToMongo(districts, polygs)
+// const polygs = transformPolygons(parsedDistrictPolygons.features)
+// polgonsToMongo(districts, polygs)
 
 // // const cleanedDistricts = cleanDistricts(parsedDistricts)
 //const mongoDistricts = districtsToMongo(parsedDistricts)
 
 //console.log(mongoDistricts)
 
+const polygs = transformRegionPolygons(parsedRegionPolygons.features)
+regionPolgonsToMongo(polygs)
 
+//mapDistrictsToRegions(regionDistricts)
+
+
+//regionsToMongo(regionDistricts)
 function mapCenters(centers){
     return centers.map((center) => {
 
@@ -94,6 +119,36 @@ function mapCentersToDistrict(districts, centers){
 
 
 
+function cleanRegions( regions ) {
+    return regions.map(({name}) => { 
+        return {properties: {name}}
+    })
+}
+
+function regionsToMongo( dirtyRegions ){
+    const regions = cleanRegions(dirtyRegions)
+    Region.insertMany(regions).then(regions => { console.log(regions)})
+}
+
+function mapDistrictsToRegions(regions){
+    
+    return regions.map(async region => {
+        const districts = await District.find({'properties.name': { $in:  region.districts}}, '_id').lean()
+        const idsOfRegionsDistricts = districts.reduce((districtsIds, district) => {
+            districtsIds.push(district._id)
+            return districtsIds
+        }, [])
+
+        Region.find({properties: {name: region.name}}).limit(1)
+        .then((foundRegion => {
+            foundRegion[0].districts.push(...idsOfRegionsDistricts)
+            foundRegion[0].save().then().catch()
+        }))
+        
+    })
+    
+}
+
 function cleanDistricts( districts ) {
     return districts.map(district => {
         const obj = {
@@ -108,9 +163,10 @@ function cleanDistricts( districts ) {
 
 function districtsToMongo( dirtyDistricts ){
     const districts = cleanDistricts(dirtyDistricts)
-    //console.log(districts)
     District.insertMany(districts).then(districts => { console.log(districts)})
 }
+
+
 
 
 //TODO map polygons to district
@@ -127,7 +183,7 @@ function transformPolygons(polygons) {
 
         if (type === 'MultiPolygon'){
            
-            const ply=  coordinates.map(polygon => { 
+            return coordinates.map(polygon => { 
                 const res = {
                     district,
                     geometry: {
@@ -138,8 +194,6 @@ function transformPolygons(polygons) {
                 
                 return res
             })
-            //console.log(ply)
-            return ply
         }else{
             const res = {
                 district,
@@ -185,7 +239,7 @@ function polgonsToMongo(districts, polygons){
     return districts.map(district => {
         const reducedPolygons = reduceMult(polygons)
         const districtPolygons = reducedPolygons.filter((polygon) => polygon.district === district)// || polygons.filter(polygon => polygon.constructor === Array)
-        //console.log(districtPolygons)
+        
         return districtPolygons.map(async polygon => {
             const { geometry } = polygon;
             const { _id } = await Polygon.create({geometry})
@@ -202,6 +256,63 @@ function polgonsToMongo(districts, polygons){
     })
 }
 
+
+
+
+//TODO map polygons to regiion
+/**
+ * 1 transform region polygons to goodly format
+ *      - remember polygon geometry coordinate features are arrays of polygons
+ * 2 bulk insert polgons to database
+ * 3 map each polygon to its regions
+ */
+function transformRegionPolygons(polygons) {
+    return polygons.map(polygon => {
+        const {geometry: {coordinates, type}, properties: {region}} = polygon
+
+        return coordinates.map(polygon => { 
+            const res = {
+                region,
+                geometry: {
+                    _type: 'Polygon',
+                    coordinates: mapPolygonCoordinates(polygon)
+                }
+            } 
+            
+            return res
+        })
+        
+    })
+}
+
+function mapPolygonCoordinates(polygons){
+    return polygons.map( polygon => {
+        return polygon.map((coordinates) => {
+            return mapCoordinates(coordinates)
+        })
+    })
+}
+
+function regionPolgonsToMongo(polygons){
+    const regions = ['Northern Region', 'Central Region', 'Southern Region']
+    return regions.map(region => {
+        const reducedPolygons = reduceMult(polygons)
+        const regionPolygons = reducedPolygons.filter((polygon) => polygon.region === region)
+        
+        return Polygon.collection.insertMany(regionPolygons, (err, polygs) => {
+                const values = Object.values(polygs.insertedIds)
+                
+                Region.find({properties: {name: region}}).limit(1)
+                .then(region => {
+                    region[0].polygons.push(...values)
+                    region[0].save()
+                    .then(region => console.log(region))
+                    .catch(err => console.error(err))
+                }).catch(err => console.error(err))
+            })
+
+    })
+}
 
 
 
