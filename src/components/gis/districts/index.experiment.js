@@ -120,7 +120,6 @@ router.get('/:uid/polygons', (req, res) => {
     District.findById(uid)
         .populate('polygons')
         .then( district => {
-            console.log(district.polygons)
             return res.json(district.polygons)
         } )
         .catch(err => res.status(500).send(err))
@@ -148,7 +147,6 @@ router.get('/:uid/polygons/:puid', (req, res) => {
 
     Polygon.findById(puid)
         .then( polygon => {
-            console.log(polygon)
             return res.json(polygon)
         } )
         .catch(err => res.status(500).send(err))
@@ -159,7 +157,6 @@ router.get('/:uid/distribution-lines/:puid', (req, res) => {
 
     DistributionLines.findById(puid)
         .then( polygon => {
-            console.log(polygon)
             return res.json(polygon)
         } )
         .catch(err => res.status(500).send(err))

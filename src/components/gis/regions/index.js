@@ -8,6 +8,7 @@ const router = express.Router()
 
 router.get('/', (req, res) => {
     return Region.find({})
+            .populate('districts', 'properties')
             .then(regions => res.json(regions))
             .catch((err) =>  console.error(err))
             
