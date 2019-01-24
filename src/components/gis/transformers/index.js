@@ -8,6 +8,7 @@ const router = express.Router()
 
 router.get('/', (req, res) => {
     return Transformer.find({})
+            .lean()
             .then(transformers => res.json(transformers))
             .catch((err) =>  console.error(err))
             
@@ -17,6 +18,7 @@ router.get('/:uid', (req, res) => {
     const { uid } = req.params
 
     return Transformer.findById(uid)
+            .lean()
             .then(transformer => res.json(transformer))
             .catch(err => console.error(err))
 })

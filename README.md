@@ -218,3 +218,12 @@ Here is an **example** of how to query for district distribution in url under th
 ```
 /districts/5c45a346f2320d359c3aa93e/distribution-lines
 ```
+
+### Querying for district transformers
+
+Here is an **example** of how to query for district transformers in url under the ***/districts/:uid/transformers***endpoint
+
+```
+/districts/5c45a346f2320d359c3aa93e/transformers
+```
+
