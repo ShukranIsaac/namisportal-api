@@ -7,6 +7,7 @@ const cors = require('cors')
 const jwt = require('./middlewares/jwt')
 const users = require('./components/users')
 const regions = require('./components/gis/regions')
+const categories = require('./components/categories')
 const transformers = require('./components/gis/transformers')
 const marepCenters = require('./components/gis/marep-centers')
 const districts = require('./components/gis/districts/index')
@@ -25,6 +26,7 @@ app.use(cors())
 
  app.use('/marep-centers', marepCenters);
  app.use('/transformers', transformers)
+ app.use('/categories', categories)
  app.use('/districts', districts)
  app.use('/regions', regions)
 
