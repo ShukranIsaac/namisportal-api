@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 
 const categoriesService = require('./service')
+const fileUploadMiddleware = require('../files/upload.middleware')
 
 router.get('/', getAllCategories)
 router.get('/:uid', getOneCategory)
@@ -9,6 +10,7 @@ router.get('/:uid/documents', getDocuments)
 router.get('/:uid/sub-categories', getSubCategories)
 
 router.post('/', addCategory)
+router.use('/:uid/files', fileUploadMiddleware)
 router.post('/:uid/sub-categories', addSubCategory)
 router.patch('/:uid/', updateCategory)
 router.delete('/:uid/', deleteCategory)
@@ -56,6 +58,13 @@ function updateCategory({params: {uid}, body}, res, next)  {
 }
 
 function addCategory({body}, res, next){
+    return categoriesService.createOne(body)
+        .then( newCategory => res.json(newCategory) )
+        .catch( err => next(err))
+}
+
+function addFile({params: uid}, res, next){
+
     return categoriesService.createOne(body)
         .then( newCategory => res.json(newCategory) )
         .catch( err => next(err))

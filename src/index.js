@@ -5,6 +5,7 @@ const dotenv = require('dotenv')
 const cors = require('cors')
 
 const jwt = require('./middlewares/jwt')
+const files = require('./components/files')
 const users = require('./components/users')
 const regions = require('./components/gis/regions')
 const categories = require('./components/categories')
@@ -29,6 +30,7 @@ app.use(cors())
  app.use('/categories', categories)
  app.use('/districts', districts)
  app.use('/regions', regions)
+ app.use('/files', files)
 
  // use JWT auth to secure the api
 //app.use(jwt())
