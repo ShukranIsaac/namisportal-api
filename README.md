@@ -14,19 +14,8 @@ the response will be something like this:
     "properties": {
       "name": "Northern Region"
     },
-    "polygons": [
-      "5c46d5f521c0a71664d7b301",
-      "5c46d5f521c0a71664d7b302",
-      "5c46d5f521c0a71664d7b303"
-    ],
-    "districts": [
-      "5c45a346f2320d359c3aa928",
-      "5c45a346f2320d359c3aa92b",
-      "5c45a346f2320d359c3aa92d",
-      "5c45a346f2320d359c3aa934",
-      "5c45a346f2320d359c3aa93b",
-      "5c45a346f2320d359c3aa93f"
-    ],
+    "polygons": [Array],
+    "districts": [Array],
     "_id": "5c46d5aac0a607159d6001fd",
     "__v": 2
   },
@@ -34,25 +23,8 @@ the response will be something like this:
     "properties": {
       "name": "Central Region"
     },
-    "polygons": [
-      "5c46d5f521c0a71664d7b304",
-      "5c46d5f521c0a71664d7b305",
-      "5c46d5f521c0a71664d7b306",
-      "5c46d5f521c0a71664d7b307",
-      "5c46d5f521c0a71664d7b308",
-      "5c46d5f521c0a71664d7b309"
-    ],
-    "districts": [
-      "5c45a346f2320d359c3aa929",
-      "5c45a346f2320d359c3aa92a",
-      "5c45a346f2320d359c3aa92c",
-      "5c45a346f2320d359c3aa92e",
-      "5c45a346f2320d359c3aa931",
-      "5c45a346f2320d359c3aa936",
-      "5c45a346f2320d359c3aa938",
-      "5c45a346f2320d359c3aa939",
-      "5c45a346f2320d359c3aa93c"
-    ],
+    "polygons": [Array],
+    "districts": [Array],
     "_id": "5c46d5aac0a607159d6001fe",
     "__v": 2
   },
@@ -60,28 +32,8 @@ the response will be something like this:
     "properties": {
       "name": "Southern Region"
     },
-    "polygons": [
-      "5c46d5f521c0a71664d7b30a",
-      "5c46d5f521c0a71664d7b30b",
-      "5c46d5f521c0a71664d7b30c",
-      "5c46d5f521c0a71664d7b30d",
-      "5c46d5f521c0a71664d7b30e"
-    ],
-    "districts": [
-      "5c45a346f2320d359c3aa924",
-      "5c45a346f2320d359c3aa925",
-      "5c45a346f2320d359c3aa926",
-      "5c45a346f2320d359c3aa927",
-      "5c45a346f2320d359c3aa92f",
-      "5c45a346f2320d359c3aa930",
-      "5c45a346f2320d359c3aa932",
-      "5c45a346f2320d359c3aa933",
-      "5c45a346f2320d359c3aa935",
-      "5c45a346f2320d359c3aa937",
-      "5c45a346f2320d359c3aa93a",
-      "5c45a346f2320d359c3aa93d",
-      "5c45a346f2320d359c3aa93e"
-    ],
+    "polygons": [Array],
+    "districts": [Array],
     "_id": "5c46d5aac0a607159d6001ff",
     "__v": 2
   }
@@ -110,21 +62,7 @@ the result will be something like this:
     }
     ... more polygons
   ],
-  "districts": [
-    "5c45a346f2320d359c3aa924",
-    "5c45a346f2320d359c3aa925",
-    "5c45a346f2320d359c3aa926",
-    "5c45a346f2320d359c3aa927",
-    "5c45a346f2320d359c3aa92f",
-    "5c45a346f2320d359c3aa930",
-    "5c45a346f2320d359c3aa932",
-    "5c45a346f2320d359c3aa933",
-    "5c45a346f2320d359c3aa935",
-    "5c45a346f2320d359c3aa937",
-    "5c45a346f2320d359c3aa93a",
-    "5c45a346f2320d359c3aa93d",
-    "5c45a346f2320d359c3aa93e"
-  ],
+  "districts": [Aray],
   "_id": "5c46d5aac0a607159d6001ff",
   "__v": 2
 }
@@ -181,14 +119,7 @@ the result will be something like this:
   "polygons": [
     "5c45aedba5ec703926750f78"
   ],
-  "distributionLines": [
-    "5c45a35bc7b06935e347041b",
-    "5c45a35bc7b06935e347041c",
-    "5c45a35bc7b06935e347041d",
-    "5c45a35bc7b06935e347041e",
-    "5c45a35bc7b06935e347041f",
-    ...many more
-  ]
+  "distributionLines": [Array]
   "_id": "5c45a346f2320d359c3aa93e",
   "__v": 2
 }
@@ -213,7 +144,7 @@ Here is an **example** of how to query for district polygons in url under the **
 
 ### Querying for distrtict distribution lines
 
-Here is an **example** of how to query for district distribution in url under the ***/districts/:uid/distribution-lines***endpoint
+Here is an **example** of how to query for district distribution in url under the ***/districts/:uid/distribution-lines*** endpoint
 
 ```
 /districts/5c45a346f2320d359c3aa93e/distribution-lines
@@ -221,7 +152,7 @@ Here is an **example** of how to query for district distribution in url under th
 
 ### Querying for district transformers
 
-Here is an **example** of how to query for district transformers in url under the ***/districts/:uid/transformers***endpoint
+Here is an **example** of how to query for district transformers in url under the ***/districts/:uid/transformers*** endpoint
 
 ```
 /districts/5c45a346f2320d359c3aa93e/transformers
