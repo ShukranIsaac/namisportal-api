@@ -226,4 +226,97 @@ Here is an **example** of how to query for district transformers in url under th
 ```
 /districts/5c45a346f2320d359c3aa93e/transformers
 ```
+## Calling files endpoints
+Behold, the endpoints for files
+
+### To get all the files
+Make a get request to this endpoint
+```
+/files
+```
+
+### To get a file by uid
+Make a get request to this endpoint
+```
+/files/:uid
+```
+
+### To upload a file
+Make a post request to this endpoint
+```
+/files/upload
+```
+### To download a file
+Make a get request to this endpoint
+```
+/files/:uid/download
+```
+Heres's an example of how request body should look like
+```
+{
+  name: String,
+  file: [File]
+}
+```
+
+## Calling Caregories Endpoints
+### To get all categories
+Make a get request to this endpoint
+```
+/categories
+```
+
+###To get a category by id
+Make a get request to this endpoint
+```
+/categories/uid
+```
+
+###To create a new category
+Make a post request to this endpoint
+```
+/categories
+```
+
+Heres's an example of how request body should look like
+```
+{
+  name: String,
+  about: String
+}
+```
+
+###To create add a subcategory to an existing category
+Make a post request to this endpoint
+```
+/categories/:uid/sub-categories
+```
+
+Heres's an example of how request body should look like
+```
+{
+  name: String,
+  about: String
+}
+```
+
+### To get subcategories under a category
+Make a get request to this endpoint
+```
+/categories/:uid/sub-categories
+```
+
+### To add a document to a category
+Make a post request to this endpoint
+```
+/categories/:uid/documents
+```
+
+Heres's an example of how request body should look like
+```
+{
+  name: String,
+  file: [File]
+}
+```
 
