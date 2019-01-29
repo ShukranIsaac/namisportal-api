@@ -5,20 +5,14 @@ const mongoose = require('mongoose');
 const MarepCenterSchema = new Schema(
     {
         properties: {
-            name: String,
-            feature: String,
-            status: Boolean,
-            demographics: {
-                TA: String,
-                pupulation: Number
-            }
+            district: String
         },
         geometry: {
             _type: String,
             coordinates: {lng: Number, lat: Number}
         }
     },
-    {collection: 'marep-centres'}
+    {collection: 'marep_centres'}
 );
 
 MarepCenterSchema.plugin(mongooseStringQuery)
