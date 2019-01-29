@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
-const uploads = express.Router()
 const nodePath = require('path')
+const jwtm = require('../../middlewares/jwt')
 
 const filesService = require('./service')
 const upload = require('./upload.middleware')
@@ -9,8 +9,8 @@ const upload = require('./upload.middleware')
 router.get('/', getAllFiles)
 router.get('/:uid', getOneFile)
 
-router.use('/upload', upload)
-router.patch('/:uid/', updateFile)
+router.use('/upload', jwtm,  upload)
+router.patch('/:uid/', jwtm, updateFile)
 router.get('/download/:uid', downloadFile)
 
 module.exports = router

@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const userService = require('./service');
+const jwtm = require('../../middlewares/jwt')
 
 // routes
 router.post('/authenticate', authenticate);
 router.post('/register', register);
-router.get('/', getAll);
-router.get('/current', getCurrent);
-router.get('/:id', getById);
-router.put('/:id', update);
-router.delete('/:id', _delete);
+router.get('/', jwtm, getAll);
+router.get('/current',jwtm, getCurrent);
+router.get('/:id', jwtm, getById);
+router.put('/:id', jwtm, update);
+router.delete('/:id', jwtm, _delete);
 
 module.exports = router;
 

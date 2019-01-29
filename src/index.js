@@ -1,10 +1,10 @@
 const bodyParser  = require('body-parser')
 const mongoose = require('mongoose')
 const express = require('express')
+const helmet = require('helmet')
 const dotenv = require('dotenv')
 const cors = require('cors')
 
-const jwt = require('./middlewares/jwt')
 const files = require('./components/files')
 const users = require('./components/users')
 const regions = require('./components/gis/regions')
@@ -24,16 +24,16 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cors())
 
 //app.use(routes)
-
- app.use('/marep-centers', marepCenters);
- app.use('/transformers', transformers)
- app.use('/categories', categories)
- app.use('/districts', districts)
- app.use('/regions', regions)
- app.use('/files', files)
+app.use(helmet())
+app.use('/marep-centers', marepCenters);
+app.use('/transformers', transformers)
+app.use('/categories', categories)
+app.use('/districts', districts)
+app.use('/regions', regions)
+app.use('/files', files)
 
  // use JWT auth to secure the api
-//app.use(jwt())
+
 
 app.use('/users', users)
 

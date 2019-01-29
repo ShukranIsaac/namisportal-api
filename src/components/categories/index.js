@@ -1,5 +1,6 @@
 const express = require('express')
 const router = express.Router()
+const jwtm = require('../../middlewares/jwt')
 
 const categoriesService = require('./service')
 const fileUploadMiddleware = require('../files/upload.middleware')
@@ -9,11 +10,11 @@ router.get('/:uid', getOneCategory)
 router.get('/:uid/documents', getDocuments)
 router.get('/:uid/sub-categories', getSubCategories)
 
-router.post('/', addCategory)
-router.use('/:uid/files', fileUploadMiddleware)
-router.post('/:uid/sub-categories', addSubCategory)
-router.patch('/:uid/', updateCategory)
-router.delete('/:uid/', deleteCategory)
+router.post('/', jwtm, addCategory)
+router.use('/:uid/files', jwtm, fileUploadMiddleware)
+router.post('/:uid/sub-categories', jwtm, addSubCategory)
+router.patch('/:uid/', jwtm, updateCategory)
+router.delete('/:uid/', jwtm, deleteCategory)
 
 module.exports = router
 
