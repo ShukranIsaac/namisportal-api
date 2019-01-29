@@ -2,8 +2,12 @@ const bodyParser  = require('body-parser')
 const mongoose = require('mongoose')
 const express = require('express')
 const helmet = require('helmet')
-const dotenv = require('dotenv')
 const cors = require('cors')
+
+
+if (process.env.NODE_ENV !== 'production'){
+  require('dotenv').config()
+}
 
 const files = require('./components/files')
 const users = require('./components/users')
@@ -41,7 +45,6 @@ app.use('/users', users)
 db.on('error', console.error.bind(console, 'connection error:'))
 db.once('open', () =>  console.info('connekitedi'));
 
-dotenv.config()
 
 const PORT = process.env.PORT || '3300'
 
@@ -54,7 +57,7 @@ app.get('/', function (req, res) {
 app.listen(PORT, () => {
   console.log(`server up at ${PORT}`) 
 
-  mongoose.connect('mongodb://localhost/test', { useNewUrlParser: true })
+  mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true })
 })
 
 module.exports = app
