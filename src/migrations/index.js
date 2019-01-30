@@ -54,25 +54,25 @@ const regionDistricts = [
 // const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
 // const districtDistLines =  mapLinesToDistrict(districts, transformedDistLines)
 
-//const mappedCenters = mapCenters(marepCenters.features)
-//mapCentersToDistrict(districts, mappedCenters)
+// const mappedCenters = mapCenters(marepCenters.features)
+// mapCentersToDistrict(districts, mappedCenters)
 
 // const polygs = transformPolygons(parsedDistrictPolygons.features)
 // polgonsToMongo(districts, polygs)
 
-// // const cleanedDistricts = cleanDistricts(parsedDistricts)
-//const mongoDistricts = districtsToMongo(parsedDistricts)
+// const cleanedDistricts = cleanDistricts(parsedDistricts)
+// const mongoDistricts = districtsToMongo(parsedDistricts)
 
 //console.log(mongoDistricts)
 
 // const polygs = transformRegionPolygons(parsedRegionPolygons.features)
 // regionPolgonsToMongo(polygs)
 
-//mapDistrictsToRegions(regionDistricts)
+// mapDistrictsToRegions(regionDistricts)
 const mappedTransformers = mapTransformers(parsedTransformers.features)
 mapTransformersToDistrict(districts, mappedTransformers)
 
-//regionsToMongo(regionDistricts)
+// regionsToMongo(regionDistricts)
 
 
 //transformers stuffies
@@ -208,7 +208,7 @@ function mapDistrictsToRegions(regions){
         Region.find({properties: {name: region.name}}).limit(1)
         .then((foundRegion => {
             foundRegion[0].districts.push(...idsOfRegionsDistricts)
-            foundRegion[0].save().then().catch()
+            foundRegion[0].save().then(region => console.log(region)).catch()
         }))
         
     })
