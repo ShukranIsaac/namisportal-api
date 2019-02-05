@@ -3,7 +3,7 @@ const Category = require('./model')
 module.exports = {
     getAll: async (name) => {
         if (name !== undefined){
-            return await Category.findOne({name}).lean()
+            return await Category.findOne({name}).populate('subCategories').lean()
         }else{
             return await Category.find({}).lean()
         }
