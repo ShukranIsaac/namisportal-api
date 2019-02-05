@@ -8,7 +8,7 @@ const FileSchema = new Schema(
         description: String,
         size: String,
         path: String,
-        catigories: [
+        categories: [
             { type: Schema.Types.ObjectId, ref: 'Category' }
         ],
     },

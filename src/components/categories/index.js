@@ -89,6 +89,6 @@ async function doUpdate(document, props){
 }
 
 async function addChildCategory(parent, childId){
-    parent.subCatigories.push(childId)
+    parent.subCategories.push(childId)
     return await parent.save()
 }

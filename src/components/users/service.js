@@ -25,11 +25,11 @@ async function authenticate({ username, password }) {
 }
 
 async function getAll() {
-    return await User.find().select('-hash');
+    return await User.find().select('-hash').lean()
 }
 
 async function getById(id) {
-    return await User.findById(id).select('-hash');
+    return await User.findById(id).select('-hash').lean()
 }
 
 async function create(userParam) {
@@ -70,5 +70,5 @@ async function update(id, userParam) {
 }
 
 async function _delete(id) {
-    await User.findByIdAndRemove(id);
+    await User.findByIdAndRemove(id).lean()
 }

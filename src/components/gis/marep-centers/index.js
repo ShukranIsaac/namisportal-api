@@ -18,6 +18,11 @@ router.get('/:uid', (req, res) => {
         })
 })
 
+// router.get('/aggregates', (req, res) => {
+//     MarepCenter.aggregate()
+//     MarepCenter.count({}).then((centers => console.log(centers)))
+//         .catch(err => console.log(err))
+// })
 
 module.exports = router
 

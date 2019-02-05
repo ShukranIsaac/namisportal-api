@@ -9,7 +9,7 @@ const CategorySchema = new Schema(
         documents: [
             { type: Schema.Types.ObjectId, ref: 'File' }
         ],
-        subCatigories: [
+        subCategories: [
             { type: Schema.Types.ObjectId, ref: 'Category' }
         ],
     },
