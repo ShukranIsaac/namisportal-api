@@ -43,7 +43,7 @@ function getSubCategories({params: {uid}}, res, next)  {
 }
 
 function deleteCategory({params: {uid}}, res, next)  {
-    return categoriesService.deleteCategory(uid)
+    return categoriesService.delete(uid)
         .then( category => res.json(category))
         .catch( err => next(err))
 }

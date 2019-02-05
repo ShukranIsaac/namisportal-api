@@ -13,7 +13,7 @@ module.exports = {
     getSubCategories: async (id) => await Category.findById(id).populate('subCategories').lean(),
     getByIdMongooseUse: async (id) => await Category.findById(id),
     createOne: async (newCategory) => await Category.create(newCategory),
-    delete: async (id) => await Category.findByIdAndDelete(id).lean()                                                                                                       
+    delete: async (id) => await Category.findByIdAndDelete(id)                                                                                                       
 }
 
 
