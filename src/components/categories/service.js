@@ -8,7 +8,7 @@ module.exports = {
             return await Category.find({}).lean()
         }
     },
-    getById: async (id) => await Category.findById(id).lean(),
+    getById: async (id) => await Category.findById(id).populate('subCategories').lean(),
     getDocuments: async (id) => await Category.findById(id).populate('documents').lean(),
     getSubCategories: async (id) => await Category.findById(id).populate('subCategories').lean(),
     getByIdMongooseUse: async (id) => await Category.findById(id),
