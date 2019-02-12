@@ -4,6 +4,7 @@ const multer = require('multer');
 const mkdirp = require('mkdirp');
 const fileService = require('./service');
 const categoriesService = require('../categories/service')
+const stakeholdersServise = require('../stakeholders/service')
 
 
 const MAGIC_NUMBERS = {
@@ -43,17 +44,39 @@ function checkMagicNumbers(magic) {
 function uploadAndMap(req, res){
     return new Promise((resolve, reject) => {
         try{
-            categoriesService.getByIdMongooseUse(req.params.uid)
-            .then(async category => {
-                const file = await uploadTheFile(req, res)
+            
+            const url = req.baseUrl.split('/')[1]
 
-                fileService.createOne(file)
-                    .then( ({_id}) => {
-                        category.documents.push({_id})
-                        resolve(category.save())
-                    })
-                    .catch(err => reject(err))
-            })
+            if (url === 'stakeholders'){
+                stakeholdersServise.getByIdMongooseUse(req.params.uid)
+                .then(async stakeholder => {
+                    const file = await uploadTheFile(req, res)
+    
+                    fileService.createOne(file)
+                        .then( ({path}) => {
+                            stakeholder.image = path
+                            resolve(stakeholder.save())
+                        })
+                        .catch(err => reject(err))
+                }) 
+            }
+            else if(url === 'categories') {
+                categoriesService.getByIdMongooseUse(req.params.uid)
+                .then(async category => {
+                    const file = await uploadTheFile(req, res)
+
+                    fileService.createOne(file)
+                        .then( ({_id}) => {
+                            category.documents.push({_id})
+                            resolve(category.save())
+                        })
+                        .catch(err => reject(err))
+                })
+            }
+            else{
+                reject(new Error('Invalid URL, please check'))
+            }
+            
         }
         catch(error){
             reject(error)

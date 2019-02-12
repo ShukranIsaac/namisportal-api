@@ -16,6 +16,7 @@ const categories = require('./components/categories')
 const transformers = require('./components/gis/transformers')
 const marepCenters = require('./components/gis/marep-centers')
 const districts = require('./components/gis/districts/index')
+const stakeHolders = require('./components/stakeholders/index')
 
 //const routes = require('./routes')
 const db = mongoose.connection;
@@ -29,7 +30,8 @@ app.use(cors())
 
 //app.use(routes)
 app.use(helmet())
-app.use('/marep-centers', marepCenters);
+app.use('/marep-centers', marepCenters)
+app.use('/stakeholders', stakeHolders)
 app.use('/transformers', transformers)
 app.use('/categories', categories)
 app.use('/districts', districts)
