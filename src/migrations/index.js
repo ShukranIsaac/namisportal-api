@@ -137,12 +137,14 @@ function mapTransformersToDistrict(districts, transformers){
 function mapCenters(centers){
     return centers.map((center) => {
 
-        const { geometry: { type , coordinates}, properties: {ta, ghv, village, district} } = center
+        const { geometry: { type , coordinates}, properties: {ta, region, district} } = center
         const newCoordinate =  mapCoordinates(coordinates)
         
         const centerObj = {
             district,
-            properties: {},
+            properties: {
+                region, ta
+            },
             geometry: {
                 _type: type,
                 coordinates: newCoordinate
@@ -163,6 +165,20 @@ function mapCoordinates(coordinates){
 function mapCentersToDistrict(districts, centers){
     return districts.map((district) => {
         const districtCenters = centers.filter((center) => center.district === district)
+
+        MarepCenter.collection.insertMany(districtCenters, (err, {insertedIds}) => {
+            if (err) throw new Error(err)
+            const values = Object.values(insertedIds)
+
+            District.findOne({properties: {name: district}})
+                .then(districtFromMongo => {
+                    districtFromMongo.marepCenters.push(...values)
+                    districtFromMongo.save()
+                        .then(saved => console.log(saved))
+                        .catch(err => console.error(err))
+                })
+                .catch(err => console.error(err))
+        })
         
         return districtCenters.map(async (center) => {
             const { properties, geometry } = center;
