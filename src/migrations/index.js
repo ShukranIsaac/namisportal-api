@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const db = mongoose.connection;
 
 
-const marepCentersJSON = fs.readFileSync(__dirname + '/marep.json')
+const marepCentersJSON = fs.readFileSync(__dirname + '/marep_centres_organized.geojson')
 const marepCenters = JSON.parse(marepCentersJSON)
 
 const regionsJSON = fs.readFileSync(__dirname + '/regions.json')
@@ -15,7 +15,7 @@ const parsedDistricts = JSON.parse(districtsJSON)
 const districtPolygonsJSON = fs.readFileSync(__dirname + '/districts.json')
 const parsedDistrictPolygons = JSON.parse(districtPolygonsJSON)
 
-const transformersJSON = fs.readFileSync(__dirname + '/transformers.geojson')
+const transformersJSON = fs.readFileSync(__dirname + '/escom_transformers_organized.geojson')
 const parsedTransformers = JSON.parse(transformersJSON)
 
 const distributionLinesJSON= fs.readFileSync(__dirname + '/distribution_lines.geojson')
@@ -57,8 +57,8 @@ const regionDistricts = [
 // const mappedCenters = mapCenters(marepCenters.features)
 // mapCentersToDistrict(districts, mappedCenters)
 
-// const polygs = transformPolygons(parsedDistrictPolygons.features)
-// polgonsToMongo(districts, polygs)
+const polygs = transformPolygons(parsedDistrictPolygons.features)
+polgonsToMongo(districts, polygs)
 
 // const cleanedDistricts = cleanDistricts(parsedDistricts)
 // const mongoDistricts = districtsToMongo(parsedDistricts)
@@ -69,8 +69,9 @@ const regionDistricts = [
 // regionPolgonsToMongo(polygs)
 
 // mapDistrictsToRegions(regionDistricts)
-const mappedTransformers = mapTransformers(parsedTransformers.features)
-mapTransformersToDistrict(districts, mappedTransformers)
+
+// const mappedTransformers = mapTransformers(parsedTransformers.features)
+// mapTransformersToDistrict(districts, mappedTransformers)
 
 // regionsToMongo(regionDistricts)
 
@@ -79,29 +80,29 @@ mapTransformersToDistrict(districts, mappedTransformers)
 function mapTransformers(transformers){
     return transformers.map((transformer) => {
 
-        const { geometry: { type , coordinates}, properties: {region, district} } = transformer
+        const { geometry: { type , coordinates}, properties: {region, district, ta} } = transformer
         const newCoordinate =  mapCoordinates(coordinates)
         
         const transformerObj = {
             properties: {
-                station: transformer.properties.Station8,
+                station: transformer.properties.station8,
                 mass: transformer.properties['mass(kg)28'],
-                voltage: transformer.properties.Voltage38,
-                MVARating: transformer.properties.MVARati40,
-                yearManufactured: transformer.properties.YearMan44,
-                manufacturer: transformer.properties.Manufact41,
-                district, region,
+                voltage: transformer.properties.voltage38,
+                MVARating: transformer.properties['mva rati40'],
+                yearManufactured: transformer.properties['year man44'],
+                manufacturer: transformer.properties.manufact41,
+                district, region, ta,
                 feature: 'Point',
-                primary: transformer.properties.Primary10,
+                primary: transformer.properties['primary 10'],
                 position: transformer.properties.position27,
-                feeder: transformer.properties.Feeder6,
-                location: transformer.properties.Location46,
-                barcode: transformer.properties.Barcode25,
-                serialNumber: transformer.properties.SerialN32,
+                feeder: transformer.properties.feeder6,
+                location: transformer.properties.location46,
+                barcode: transformer.properties.barcode25,
+                serialNumber: transformer.properties['serial n32'],
                 cooling: transformer.properties.cooling22,
-                SSNumber: transformer.properties.SSNumbe12,
-                summable: transformer.properties.Summable14,
-                oilVolume: transformer.properties.oilVolu21
+                SSNumber: transformer.properties['ss numbe12'],
+                summable: transformer.properties.summable14,
+                oilVolume: transformer.properties['oil volu21']
             },
             geometry: {
                 _type: type,
@@ -117,40 +118,40 @@ function mapTransformersToDistrict(districts, transformers){
     return districts.map((district) => {
         const districtTransformers = transformers.filter((transformer) => transformer.properties.district === district)
         
-        Transformer.collection.insertMany(districtTransformers, (err, {insertedIds}) => {
-            if (err) throw new Error(err)
-            const values = Object.values(insertedIds)
-
-            District.findOne({properties: {name: district}})
-                .then(districtFromMongo => {
-                    districtFromMongo.transformers.push(...values)
-                    districtFromMongo.save()
-                        .then(saved => console.log(saved))
-                        .catch(err => console.error(err))
-                })
-                .catch(err => console.error(err))
-        })
+        if (districtTransformers.length > 0){
+            Transformer.collection.insertMany(districtTransformers, (err, {insertedIds}) => {
+                if (err) throw new Error(err)
+                const values = Object.values(insertedIds)
+    
+                District.findOne({properties: {name: district}})
+                    .then(districtFromMongo => {
+                        districtFromMongo.transformers.push(...values)
+                        districtFromMongo.save()
+                            .then(saved => console.log(saved))
+                            .catch(err => console.error(err))
+                    })
+                    .catch(err => console.error(err))
+            })
+        }
     })
 }
 
 // marep centers stuffioes
 function mapCenters(centers){
     return centers.map((center) => {
-
-        const { geometry: { type , coordinates}, properties: {ta, region, district} } = center
+        
+        const { geometry: { type , coordinates}, properties: {region, ta, district} } = center
         const newCoordinate =  mapCoordinates(coordinates)
         
         const centerObj = {
-            district,
             properties: {
-                region, ta
+                region, district: capitalize(district), ta
             },
             geometry: {
                 _type: type,
                 coordinates: newCoordinate
             }
         }
-
         return centerObj
     })
 }
@@ -162,39 +163,32 @@ function mapCoordinates(coordinates){
     }
 }
 
+function capitalize(s){
+    return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
 function mapCentersToDistrict(districts, centers){
     return districts.map((district) => {
-        const districtCenters = centers.filter((center) => center.district === district)
+        const districtCenters = centers.filter(({properties}) => properties.district == district )
 
-        MarepCenter.collection.insertMany(districtCenters, (err, {insertedIds}) => {
-            if (err) throw new Error(err)
-            const values = Object.values(insertedIds)
-
-            District.findOne({properties: {name: district}})
-                .then(districtFromMongo => {
-                    districtFromMongo.marepCenters.push(...values)
-                    districtFromMongo.save()
-                        .then(saved => console.log(saved))
+        if (districtCenters.length > 0){
+            MarepCenter.collection.insertMany(districtCenters, (err, {insertedIds}) => {
+                if (err) throw new Error(err)
+    
+                    const values = Object.values(insertedIds)
+    
+                    District.findOne({properties: {name: district}})
+                        .then(districtFromMongo => {
+                            districtFromMongo.marepCenters.push(...values)
+                            districtFromMongo.save()
+                                .then(saved => console.log(saved))
+                                .catch(err => console.error(err))
+                        })
                         .catch(err => console.error(err))
-                })
-                .catch(err => console.error(err))
-        })
+                
+            })
+        }
         
-        return districtCenters.map(async (center) => {
-            const { properties, geometry } = center;
-            const { _id } = await MarepCenter.create({geometry, properties})
-
-            //console.log(_id)
-
-            District.find({properties: {name: district}})
-                .then(district => {
-                    district[0].marepCenters.push({_id})
-
-                    district[0].save()
-                    .then(center => console.log(center))
-                    .catch(err => console.error(err))
-                }).catch(err => console.error(err))
-        })
         
     })
 }
