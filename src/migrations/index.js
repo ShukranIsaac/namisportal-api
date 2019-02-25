@@ -78,8 +78,8 @@ const regionDistricts = [
 // mapTransformersToDistrict(districts, mappedTransformers)
 
 
-const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
-mapPowerPlantsToDistrict(districts, mappedPowerPlants)
+// const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
+// mapPowerPlantsToDistrict(districts, mappedPowerPlants)
 
 // regionsToMongo(regionDistricts)
 
@@ -575,16 +575,17 @@ function mapPolyLinesCoords(coordinates){
 function transformDistributionLines(features){
     //console.log(features)
     return features.map((feature, key) => {
-        const {district, Feeder2, Status3, Voltage26, region, Conducto1} = feature.properties;
-        const length = feature.properties['Length (20'];
+        const {district, Feeder, Status3, Voltage, region, Conducto1, LineType, Substation, Length} = feature.properties;
         const { coordinates, type } =  feature.geometry;
         const res = {
             properties: {
-                district, length, region,
-                feeder: Feeder2,
+                district, length: Length, region,
+                feeder: Feeder,
                 status: Status3,
                 conductor: Conducto1,
-                voltage: Voltage26
+                voltage: Voltage,
+                lineType: LineType,
+                substation: Substation
             },  
             geometry: {
                 coordinates: mapPolyLinesCoords(coordinates),

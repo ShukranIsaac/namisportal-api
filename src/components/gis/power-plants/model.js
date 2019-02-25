@@ -7,12 +7,12 @@ const PowerPlantSchema = new Schema(
         properties: {
             status: String,
             plantType: String,
-            capacityInMW: String,
+            capacityInMW: Number,
             region: String,
             district: String,
             name: String,
             ta: String,
-            
+
         },
         geometry: {
             _type: String,
