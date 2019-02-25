@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const db = mongoose.connection;
 
 
-const marepCentersJSON = fs.readFileSync(__dirname + '/marep_centres_organized.geojson')
+const marepCentersJSON = fs.readFileSync(__dirname + '/marep_centres.geojson')
 const marepCenters = JSON.parse(marepCentersJSON)
 
 const regionsJSON = fs.readFileSync(__dirname + '/regions.json')
@@ -15,7 +15,7 @@ const parsedDistricts = JSON.parse(districtsJSON)
 const districtPolygonsJSON = fs.readFileSync(__dirname + '/districts.json')
 const parsedDistrictPolygons = JSON.parse(districtPolygonsJSON)
 
-const transformersJSON = fs.readFileSync(__dirname + '/escom_transformers_organized.geojson')
+const transformersJSON = fs.readFileSync(__dirname + '/escom_transfomers.geojson')
 const parsedTransformers = JSON.parse(transformersJSON)
 
 const distributionLinesJSON= fs.readFileSync(__dirname + '/distribution_lines.geojson')
@@ -57,16 +57,16 @@ const regionDistricts = [
 // const mappedCenters = mapCenters(marepCenters.features)
 // mapCentersToDistrict(districts, mappedCenters)
 
-const polygs = transformPolygons(parsedDistrictPolygons.features)
-polgonsToMongo(districts, polygs)
+// const polygs = transformPolygons(parsedDistrictPolygons.features)
+// polgonsToMongo(districts, polygs)
 
 // const cleanedDistricts = cleanDistricts(parsedDistricts)
 // const mongoDistricts = districtsToMongo(parsedDistricts)
 
 //console.log(mongoDistricts)
 
-// const polygs = transformRegionPolygons(parsedRegionPolygons.features)
-// regionPolgonsToMongo(polygs)
+const polygs = transformRegionPolygons(parsedRegionPolygons.features)
+regionPolgonsToMongo(polygs)
 
 // mapDistrictsToRegions(regionDistricts)
 
@@ -91,7 +91,8 @@ function mapTransformers(transformers){
                 MVARating: transformer.properties['mva rati40'],
                 yearManufactured: transformer.properties['year man44'],
                 manufacturer: transformer.properties.manufact41,
-                district, region, ta,
+                district: capitalize(district), 
+                region, ta,
                 feature: 'Point',
                 primary: transformer.properties['primary 10'],
                 position: transformer.properties.position27,
@@ -139,6 +140,8 @@ function mapTransformersToDistrict(districts, transformers){
 // marep centers stuffioes
 function mapCenters(centers){
     return centers.map((center) => {
+
+        
         
         const { geometry: { type , coordinates}, properties: {region, ta, district} } = center
         const newCoordinate =  mapCoordinates(coordinates)

@@ -12,6 +12,7 @@ const StakeholderSchema = new Schema(
             email: String,
             telephone: String,
             website: String,
+            address: String
         },
         image: String
     },
