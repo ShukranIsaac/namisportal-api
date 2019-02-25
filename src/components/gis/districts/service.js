@@ -12,16 +12,32 @@ module.exports = {
     getById: async (id) => await District.findById(id).populate('polygons').lean(),
     getPolygons: async (id) => await District.findById(id).populate('polygons').lean(),
     getMarepcenters: async (id) => await District.findById(id).populate('marepCenters').lean(),
-    getTransformers: async (id) => await District.findById(id).populate('transformers').lean(),
-    getDistributionLines: async (id) => await District.findById(id).populate('distributionLines').lean(),
+    getTransformers: async (id, position=null) => {
+        
+        if (position !== null){
+            return await District.findById(id).populate({path: 'transformers', match: {'properties.position':position}}).lean() 
+        }
+        else{
+            return await District.findById(id).populate('transformers').lean()
+        }
+        
+    },
+    getDistributionLines: async (id, voltage=null) => {
+        
+        if (voltage !== null){
+            return await District.findById(id).populate({path: 'distributionLines', match: {'properties.voltage':voltage}}).lean() 
+        }
+        else{
+            return await District.findById(id).populate('distributionLines').lean() 
+        }
+        
+    },
     getAggregates: async (id) => await District.aggregate(
-        [{ $match: {
-        "_id" : id
-        }},
-        { $unwind: "$marepCenters" },
-        { $group: {
-            count: { $sum: 1 }
-        }}]
+        [
+            { $match: {"_id" : id}},
+            { $unwind: "$marepCenters" },
+            { $group: { count: { $sum: 1 } } }
+        ]
     )
 }
 

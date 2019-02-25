@@ -3,6 +3,9 @@ const mongoose = require('mongoose')
 const db = mongoose.connection;
 
 
+const powerPlantsJSON = fs.readFileSync(__dirname + '/power_plants.geojson')
+const parsedPowerPlants = JSON.parse(powerPlantsJSON)
+
 const marepCentersJSON = fs.readFileSync(__dirname + '/marep_centres.geojson')
 const marepCenters = JSON.parse(marepCentersJSON)
 
@@ -26,6 +29,7 @@ db.once('open', () =>  console.info('connekitedi'));
 mongoose.connect('mongodb://localhost/test', { useNewUrlParser: true })
 
 const DistributionLines = require('../components/gis/distribution-lines/model')
+const PowerPlant = require('../components/gis/power-plants/model')
 const MarepCenter = require('../components/gis/marep-centers/model')
 const Transformer = require('../components/gis/transformers/model')
 const District = require('../components/gis/districts/model')
@@ -65,16 +69,69 @@ const regionDistricts = [
 
 //console.log(mongoDistricts)
 
-const polygs = transformRegionPolygons(parsedRegionPolygons.features)
-regionPolgonsToMongo(polygs)
+// const polygs = transformRegionPolygons(parsedRegionPolygons.features)
+// regionPolgonsToMongo(polygs)
 
 // mapDistrictsToRegions(regionDistricts)
 
 // const mappedTransformers = mapTransformers(parsedTransformers.features)
 // mapTransformersToDistrict(districts, mappedTransformers)
 
+
+const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
+mapPowerPlantsToDistrict(districts, mappedPowerPlants)
+
 // regionsToMongo(regionDistricts)
 
+
+//power plants stuffies
+function mapPowerPlants(powerPlants){
+    return powerPlants.map((powerPlant) => {
+
+        const { geometry: { type , coordinates}, properties: {region, district, ta, PlantName, status, TypeOfPlant} } = powerPlant
+        const newCoordinate =  mapCoordinates(coordinates)
+        
+        const powerPlantObj = {
+            properties: {
+                region, ta, status,
+                capacityInMW: powerPlant.properties['Capacity(MW)'],
+                district: capitalize(district), 
+                plantType: TypeOfPlant,
+                name: PlantName,
+                feature: 'Point',
+            
+            },
+            geometry: {
+                _type: type,
+                coordinates: newCoordinate
+            }
+        }
+
+        return powerPlantObj
+    })
+}
+
+function mapPowerPlantsToDistrict(districts, powerPlants){
+    return districts.map((district) => {
+        const districtPowerPlants = powerPlants.filter((powerPlant) => powerPlant.properties.district === district)
+        
+        if (districtPowerPlants.length > 0){
+            PowerPlant.collection.insertMany(districtPowerPlants, (err, {insertedIds}) => {
+                if (err) throw new Error(err)
+                const values = Object.values(insertedIds)
+    
+                District.findOne({properties: {name: district}})
+                    .then(districtFromMongo => {
+                        districtFromMongo.powerPlants.push(...values)
+                        districtFromMongo.save()
+                            .then(saved => console.log(saved))
+                            .catch(err => console.error(err))
+                    })
+                    .catch(err => console.error(err))
+            })
+        }
+    })
+}
 
 //transformers stuffies
 function mapTransformers(transformers){

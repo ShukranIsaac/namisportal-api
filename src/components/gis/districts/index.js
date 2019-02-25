@@ -32,22 +32,60 @@ function getPolygons({params: {uid}}, res, next)  {
         .catch( err => next(err))
 }
 
-function getTransformers({params: {uid}}, res, next)  {
-    return districtsService.getTransformers(uid)
-        .then( districts => res.json(districts.transformers))
-        .catch( err => next(err))
+function getTransformers({params: {uid}, query: {position}}, res, next)  {
+
+    if (position === 'overhead'){
+        const positionQuery = 'POLE MOUNTED'
+        return districtsService.getTransformers(uid, positionQuery)
+            .then( districts => res.json(districts.transformers))
+            .catch( err => next(err))
+    }
+
+    else if (position === 'ground'){
+        const positionQuery = 'GROUND MOUNTED'
+        return districtsService.getTransformers(uid, positionQuery)
+            .then( districts => res.json(districts.transformers))
+            .catch( err => next(err))
+    }
+
+    else{
+        return districtsService.getTransformers(uid)
+            .then( districts => res.json(districts.transformers))
+            .catch( err => next(err))
+    }
+    
 }
 
 function getMarepCenters({params: {uid}}, res, next)  {
-    return districtsService.getMarepcenters(uid)
+    return districtsService.getMarepcenters(uid, )
         .then( districts => res.json(districts.marepCenters))
         .catch( err => next(err))
 }
 
-function getDistrinutionLines({params: {uid}}, res, next)  {
-    return districtsService.getDistributionLines(uid)
+function getDistrinutionLines({params: {uid}, query: {voltage}}, res, next)  {
+    console.log(voltage)
+    
+    if (voltage === '11'){
+        const voltageQuery = '11KV'
+        return districtsService.getDistributionLines(uid, voltageQuery)
         .then( districts => res.json(districts.distributionLines))
         .catch( err => next(err))
+    }
+        
+    else if (voltage === '33'){
+        const voltageQuery = '33KV'
+        return districtsService.getDistributionLines(uid, voltageQuery)
+        .then( districts => res.json(districts.distributionLines))
+        .catch( err => next(err))
+    }
+    
+    else{
+        return districtsService.getDistributionLines(uid)
+        .then( districts => res.json(districts.distributionLines))
+        .catch( err => next(err))
+    }
+
+    
 }
 
 function getDistrictAggregates ({params: {uid}}, res, next) {
