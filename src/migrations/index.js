@@ -55,46 +55,45 @@ const regionDistricts = [
   ];
 
 
+// regionsToMongo(regionDistricts)
+
+// const polygs = transformRegionPolygons(parsedRegionPolygons.features)
+// regionPolgonsToMongo(polygs)
+
+// const cleanedDistricts = cleanDistricts(parsedDistricts)
+// const mongoDistricts = districtsToMongo(parsedDistricts)
+
+// const polygs = transformPolygons(parsedDistrictPolygons.features)
+// polgonsToMongo(districts, polygs)
+
+// mapDistrictsToRegions(regionDistricts)
+
 // const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
 // const districtDistLines =  mapLinesToDistrict(districts, transformedDistLines)
 
 // const mappedCenters = mapCenters(marepCenters.features)
 // mapCentersToDistrict(districts, mappedCenters)
 
-// const polygs = transformPolygons(parsedDistrictPolygons.features)
-// polgonsToMongo(districts, polygs)
-
-// const cleanedDistricts = cleanDistricts(parsedDistricts)
-// const mongoDistricts = districtsToMongo(parsedDistricts)
-
-//console.log(mongoDistricts)
-
-// const polygs = transformRegionPolygons(parsedRegionPolygons.features)
-// regionPolgonsToMongo(polygs)
-
-// mapDistrictsToRegions(regionDistricts)
-
 // const mappedTransformers = mapTransformers(parsedTransformers.features)
 // mapTransformersToDistrict(districts, mappedTransformers)
 
 
-// const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
-// mapPowerPlantsToDistrict(districts, mappedPowerPlants)
+const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
+mapPowerPlantsToDistrict(districts, mappedPowerPlants)
 
-// regionsToMongo(regionDistricts)
 
 
 //power plants stuffies
 function mapPowerPlants(powerPlants){
     return powerPlants.map((powerPlant) => {
 
-        const { geometry: { type , coordinates}, properties: {region, district, ta, PlantName, status, TypeOfPlant} } = powerPlant
+        const { geometry: { type , coordinates}, properties: {region, district, ta, PlantName, status, TypeOfPlant, Capacity} } = powerPlant
         const newCoordinate =  mapCoordinates(coordinates)
         
         const powerPlantObj = {
             properties: {
                 region, ta, status,
-                capacityInMW: powerPlant.properties['Capacity(MW)'],
+                capacityInMW: Capacity,
                 district: capitalize(district), 
                 plantType: TypeOfPlant,
                 name: PlantName,
@@ -463,12 +462,10 @@ function regionPolgonsToMongo(polygons){
 function mapLinesToDistrict(districts, lines){
     const co = require('co');
 
-
     return districts.map((district) => {
         const districtlines = lines.filter((line) => line.properties.district === district)
         
         if (districtlines.length > 0){
-            //console.log(districtlines[0].geometry.coordinates)
 
             try {
                 DistributionLines.collection.insertMany(districtlines, (err, docs) => {
@@ -486,80 +483,12 @@ function mapLinesToDistrict(districts, lines){
                     })
 
                 })
-                // return  districtlines.map(async line => {
-                    
-                //     await DistributionLines.collection.insertOne(line, (err, {ops: [{_id, properties}]})=>{
-                //         //console.log(properties)
-                //             co(function*() {
-                //                 const districtCursor = District.find({properties: {name: district}}).limit(1).cursor()
-                //                 for (let doc = yield districtCursor.next(); doc != null; doc = yield districtCursor.next()) {
-                //                     doc.distributionLines.push({_id})
-                //                     doc.save()
-                //                     console.log(doc)
-                //                     delete db.collections['district'];
-                //                 }
-                //                 delete db.collections['distribution_lines']
-                                    
-                //             })
-                           
-                            
-                //             // var stream = District.find({properties: {name: district}}).lean().stream();   // however you call
-
-                //             // stream.on("data", (doc) => {
-                //             //     // call pause on entry
-                //             //     //stream.pause();
-                //             //     doc.distributionLines.push({_id})
-                //             //     doc.save()
-                //             //     console.log(doc)
-                //             //     // do processing
-                //             //    // stream.resume();            // then resume when done
-                //             // }).on('finish', () => console.log('finished'))
-                        
-                //     })
-                    
-                // })
+                
             }
             catch(error){
                 console.error(error)
             }
-            //  const dlines = districtlines.map(line => {
-            //     DistributionLines.collection.insert(line, (err, {ops: [{properties, _id}]})=>{
-            //         console.log(_id, properties)
-            //     })
-                
-                
-            //     //const districtCursor = District.find({properties: {name: 'Zomba'}}).cursor()
-                
-                
-            //     // districtCursor.on('data', async mongoDistrict => {
-            //     //     mongoDistrict.distributionLines.push({_id})
-            //     //     const savedDistrict = await mongoDistrict.save()
-            //     //     console.log(savedDistrict)
-            //     // }).on('close', () => {
-            //     //     console.log('Data insertion ended')
-            //     // })
-                
-
-                
-            //     // .then(mongoDistrict => {
-            //     //     mongoDistrict[0].distributionLines.push({_id})
-            //     //     //console.log(mongoDistrict[0].distributionLines)
-            //     //     mongoDistrict[0].save()
-            //     //     .then(distLine => console.log(distLine))
-            //     //     .catch(err => console.error(err))
-            //     // }).catch(err => console.error(err))
-            // })
-            // return dlines
         }
-        /*const { properties: {length}, geometry} = districtlines
-        let res = {
-            properties: {
-                district, length
-            },
-            geometry
-        }
-        console.log(res)
-        return res;*/
     })
 }
 
@@ -573,19 +502,22 @@ function mapPolyLinesCoords(coordinates){
 }
 
 function transformDistributionLines(features){
-    //console.log(features)
-    return features.map((feature, key) => {
-        const {district, Feeder, Status3, Voltage, region, Conducto1, LineType, Substation, Length} = feature.properties;
+
+    return features.map((feature) => {
+        const {district, Feeder2, Status3, Voltage26, region, Conducto1, Type5, Substati17} = feature.properties;
         const { coordinates, type } =  feature.geometry;
         const res = {
             properties: {
-                district, length: Length, region,
-                feeder: Feeder,
+                district, 
+                length: feature.properties['Length (20'], 
+                region,
+                primary: feature.properties['Primary 4'],
+                feeder: Feeder2,
                 status: Status3,
                 conductor: Conducto1,
-                voltage: Voltage,
-                lineType: LineType,
-                substation: Substation
+                voltage: Voltage26,
+                lineType: Type5,
+                substation: Substati17
             },  
             geometry: {
                 coordinates: mapPolyLinesCoords(coordinates),

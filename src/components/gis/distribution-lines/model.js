@@ -11,7 +11,10 @@ const DistributionLinesSchema = new Schema(
             region: String,
             voltage: String,
             status: String,
-            conductor: String
+            conductor: String,
+            primary: String,
+            lineType: String,
+            substation: String
         },
         geometry: {
             _type: String,

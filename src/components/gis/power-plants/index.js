@@ -42,9 +42,9 @@ function getCapacities() {
         .then( capacities => {
             const typesArray = capacities.map(({properties: {capacityInMW}}) => {
                 if (capacityInMW > 50)
-                    return 'above 50 MW'
+                    return 'above 50MW'
                 else{
-                    return 'below 50 MW'
+                    return 'below 50MW'
                 }
             })
             var uniq = [ ...new Set(typesArray) ];
