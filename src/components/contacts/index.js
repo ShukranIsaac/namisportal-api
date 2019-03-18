@@ -1,5 +1,6 @@
 
 const nodemailer = require("nodemailer");
+const smtpTransport = require('nodemailer-smtp-transport')
 
 const express = require('express')
 const router = express.Router()
@@ -68,6 +69,15 @@ function main({fullName, email, subject, message}){
               newline: 'unix',
               path: '/usr/sbin/sendmail'
           });
+
+          let transporter2 = nodemailer.createTransport(smtpTransport({
+            service: "gmail",
+            host: 'smtp.gmail.com',
+            auth: {
+                user: "minigridzada@gmail.com",
+                pass: "@M1nigrids"
+            }
+        }));
           
         // setup email data with unicode symbols
         let mailOptions = {
@@ -79,7 +89,7 @@ function main({fullName, email, subject, message}){
         };
       
         // send mail with defined transport object
-        let info = await transporter.sendMail(mailOptions)
+        let info = await transporter2.sendMail(mailOptions)
       
         console.log("Message sent: %s", info.messageId);
         // Preview only available when sending through an Ethereal account
