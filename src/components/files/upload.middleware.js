@@ -51,10 +51,10 @@ function uploadAndMap(req, res){
                 stakeholdersServise.getByIdMongooseUse(req.params.uid)
                 .then(async stakeholder => {
                     const file = await uploadTheFile(req, res)
-    
+
                     fileService.createOne(file)
-                        .then( ({path}) => {
-                            stakeholder.image = path
+                        .then( ({filename}) => {
+                            stakeholder.image = `/files/images/${filename}`
                             resolve(stakeholder.save())
                         })
                         .catch(err => reject(err))
@@ -65,7 +65,7 @@ function uploadAndMap(req, res){
                 .then(async category => {
                     const file = await uploadTheFile(req, res)
 
-                    fileService.createOne(file)
+                    fileService.createOne({ name, path, size })
                         .then( ({_id}) => {
                             category.documents.push({_id})
                             resolve(category.save())
@@ -99,10 +99,10 @@ function uploadTheFile(req, res){
                     reject(new Error('File not valid'))
                 }
                 else{
-                    const { path, size } = req.file
+                    const { path, size, filename } = req.file
                     const { name } = req.body
     
-                    const file = { name, path, size }
+                    const file = { name, path, size, filename }
                     
                     resolve(file)
                 }

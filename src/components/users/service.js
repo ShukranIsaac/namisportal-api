@@ -9,18 +9,21 @@ module.exports = {
     getById,
     create,
     update,
-    delete: _delete
+    delete: _delete,
+    getByIdMongooseUse: async (id) => await User.findById(id).select('-hash')
 };
 
-async function authenticate({ username, password }) {
+async function authenticate({body: { username, password}, session}) {
     const user = await User.findOne({ username });
     if (user && bcrypt.compareSync(password, user.hash)) {
         const { hash, ...userWithoutHash } = user.toObject();
         const token = jwt.sign({ sub: user.id }, config.secret);
-        return {
-            ...userWithoutHash,
-            token
-        };
+        
+        if (!session.user) {
+            session.user = { ...userWithoutHash }
+        }
+          
+        return { ...userWithoutHash, token};
     }
 }
 
@@ -30,6 +33,10 @@ async function getAll() {
 
 async function getById(id) {
     return await User.findById(id).select('-hash').lean()
+}
+
+async function getByUsername(username) {
+    return await User.findOne({ username }).select('-hash')
 }
 
 async function create(userParam) {

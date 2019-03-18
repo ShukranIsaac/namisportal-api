@@ -5,6 +5,10 @@ const helmet = require('helmet')
 const cors = require('cors')
 
 
+const session = require('express-session')
+const MongoStore = require('connect-mongo')(session)
+
+
 if (process.env.NODE_ENV !== 'production'){
   require('dotenv').config()
 }
@@ -12,6 +16,7 @@ if (process.env.NODE_ENV !== 'production'){
 const news = require('./components/news')
 const files = require('./components/files')
 const users = require('./components/users')
+const contacts = require('./components/contacts')
 const regions = require('./components/gis/regions')
 const categories = require('./components/categories')
 const powerPlants = require('./components/gis/power-plants')
@@ -25,6 +30,16 @@ const db = mongoose.connection;
 
 const app = express()
 
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: false,
+  store: new MongoStore({
+      mongooseConnection: db,
+      ttl: 5 * 24 * 60 * 60,
+      touchAfter: 24 * 3600 // time period in seconds
+  })
+}))
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -39,6 +54,7 @@ app.use('/transformers', transformers)
 app.use('/categories', categories)
 app.use('/districts', districts)
 app.use('/regions', regions)
+app.use('/contacts', contacts)
 app.use('/files', files)
 app.use('/news', news)
 

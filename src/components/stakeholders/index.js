@@ -36,6 +36,7 @@ function deleteStakeholder({params: {uid}}, res, next)  {
 }   
 
 function updateStakeholder({params: {uid}, body}, res, next)  {
+    return console.log(body)
     return stakeholderService.getByIdMongooseUse(uid)
         .then( stakeholder => {
             doUpdate(stakeholder, body)
