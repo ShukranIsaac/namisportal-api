@@ -4,8 +4,8 @@ const mongoose = require('mongoose');
 
 const NewsSchema = new Schema(
     {
-        title: String,
-        article: String,
+        title: { type: String, required: true },
+        article: { type: String, required: true },
         images: [
             { type: Schema.Types.ObjectId, ref: 'File' }
         ],

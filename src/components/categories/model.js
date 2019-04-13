@@ -4,8 +4,11 @@ const mongoose = require('mongoose');
 
 const CategorySchema = new Schema(
     {
-        name: String,
-        about: String,
+        name: { type: String, unique: true, required: [true, 'Category name is required'] },
+        about: { type: String, required: [true, 'Category about field is required'] },
+        shortName: { type: String, required: [true, 'Category short name is required'] },
+        content: {type:String},
+        mainCategory: { type: Schema.Types.ObjectId, ref: 'Category' },
         documents: [
             { type: Schema.Types.ObjectId, ref: 'File' }
         ],

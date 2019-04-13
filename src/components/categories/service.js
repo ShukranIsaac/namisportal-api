@@ -14,8 +14,20 @@ module.exports = {
     getDocuments: async (id) => await Category.findById(id).populate('documents').lean(),
     getSubCategories: async (id) => await Category.findById(id).populate('subCategories').lean(),
     getByIdMongooseUse: async (id) => await Category.findById(id),
-    createOne: async (newCategory) => await Category.create(newCategory),
-    delete: async (id) => await Category.findByIdAndDelete(id).lean()                                                                                                       
+    createOne: async (newCategory) => {
+        if (await Category.findOne({name:newCategory.name})){
+            throw `Category named ${newCategory.name} already exists`
+        }
+        await Category.create(newCategory)
+    },
+    delete: async (id) => await Category.findByIdAndDelete(id).lean(),
+    doUpdate: async (document, props) => {
+        if (await Category.findOne({name: props.name})){
+            throw `Category ${props.name} already exists`
+        }
+        document.set(props)
+        return await document.save()
+    }                                                                                                     
 }
 
 

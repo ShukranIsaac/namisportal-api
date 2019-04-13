@@ -51,7 +51,7 @@ function deleteCategory({params: {uid}}, res, next)  {
 function updateCategory({params: {uid}, body}, res, next)  {
     return categoriesService.getByIdMongooseUse(uid)
         .then( category => {
-            doUpdate(category, body)
+            categoriesService.doUpdate(category, body)
             .then( updatedCat => res.json(updatedCat))
             .catch( err => next(err))
         })
@@ -61,7 +61,7 @@ function updateCategory({params: {uid}, body}, res, next)  {
 function addCategory({body}, res, next){
     return categoriesService.createOne(body)
         .then( newCategory => res.json(newCategory) )
-        .catch( err => next(err))
+        .catch( err => {console.log(err);return next(err)})
 }
 
 function addFile({params: uid}, res, next){
@@ -72,7 +72,25 @@ function addFile({params: uid}, res, next){
 }
 
 function addSubCategory({params: {uid}, body}, res, next){
-    return categoriesService.createOne(body)
+    if (body.childUid !== undefined){
+        //no need to create new category if category to be assigned already exists
+
+        return categoriesService.getByIdMongooseUse(uid)
+            .then(parentCategory => {
+                addChildCategory(parentCategory, body.childUid)
+                .then(parentWithChild => res.json(parentWithChild))
+                .catch( err => {
+                    if (err.name === 'CastError'){
+                        next(`Assigned sub-category not found`)
+                    }
+                    next(err)
+                })
+            })
+            .catch( err => next(err))
+    }
+    else{
+        // create new category if category to be assigned does not exist
+        return categoriesService.createOne(body)
         .then(({_id}) => {
             categoriesService.getByIdMongooseUse(uid)
                 .then( parentCategory => {
@@ -81,14 +99,17 @@ function addSubCategory({params: {uid}, body}, res, next){
                     .catch( err => next(err))
                 })
         })
-}
-
-async function doUpdate(document, props){
-    document.set(props)
-    return await document.save()
+    }
+    
 }
 
 async function addChildCategory(parent, childId){
+    //first check if child is already subcategory 
+
+    if(JSON.stringify(parent.subCategories).includes(childId)){
+        throw `sub-category already exists`
+    }
+
     parent.subCategories.push(childId)
     return await parent.save()
 }

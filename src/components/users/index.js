@@ -45,15 +45,20 @@ function getById(req, res, next) {
         .catch(err => next(err));
 }
 
-function update(req, res, next) {
+function update(req, res, next) {   
     userService.update(req.params.id, req.body)
-        .then(() => res.json({}))
+        .then((user) => res.json(user))
         .catch(err => next(err));
 }
 
 function _delete(req, res, next) {
     userService.delete(req.params.id)
-        .then(() => res.json({}))
+        .then(({user}) => {
+            return res.json({
+                success: true,
+                user
+            })
+        })
         .catch(err => next(err));
 }
 

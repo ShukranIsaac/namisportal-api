@@ -63,6 +63,12 @@ app.use('/news', news)
 
 app.use('/users', users)
 
+//handle middleware
+app.use((error, req, res, next) => {
+  
+  error = error.message ? error : {error}
+  return res.status(422).json(error)
+})
 
 db.on('error', console.error.bind(console, 'connection error:'))
 db.once('open', () =>  console.info('connekitedi'));

@@ -4,12 +4,12 @@ const mongoose = require('mongoose');
 
 const StakeholderSchema = new Schema(
     {
-        name: String,
+        name: { type: String, unique: true, required: true },
         about: String,
         mission: String,
         vision: String,
         contacts: {
-            email: String,
+            email: { type: String, unique: true, required: true },
             telephone: String,
             website: String,
             address: String
