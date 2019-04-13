@@ -9,10 +9,12 @@ router.get('/', getAllCategories)
 router.get('/:uid', getOneCategory)
 router.get('/:uid/documents', getDocuments)
 router.get('/:uid/sub-categories', getSubCategories)
+router.get('/:uid/main-sub-category', getMainSubCategory)
 
 router.post('/', jwtm, addCategory)
 router.use('/:uid/files', jwtm, fileUploadMiddleware)
 router.post('/:uid/sub-categories', jwtm, addSubCategory)
+router.post('/:uid/main-sub-category', jwtm, addMainSubcategory)
 router.patch('/:uid/', jwtm, updateCategory)
 router.delete('/:uid/', jwtm, deleteCategory)
 
@@ -39,6 +41,12 @@ function getDocuments({params: {uid}}, res, next)  {
 function getSubCategories({params: {uid}}, res, next)  {
     return categoriesService.getSubCategories(uid)
         .then( categories => res.json(categories.subCategories))
+        .catch( err => next(err))
+}
+
+function getMainSubCategory({params: {uid}}, res, next)  {
+    return categoriesService.getMainSubCategory(uid)
+        .then( category => res.json(category.mainSubCategory))
         .catch( err => next(err))
 }
 
@@ -71,12 +79,38 @@ function addFile({params: uid}, res, next){
         .catch( err => next(err))
 }
 
+function addMainSubcategory({params: {uid}, body}, res, next){
+    if (body.childUid !== undefined){
+        
+        return categoriesService.getByIdMongooseUse(uid)
+            .then((parent) => {
+                
+                if (parent === null)
+                    throw 'Parent category not found'
+                categoriesService.getByIdMongooseUse(body.childUid)
+                    .then((child) => {
+                        
+                        if (child === null)
+                            throw 'Child category not found'
+
+                        addMainChild(parent, child)
+                            .then((result => res.json(result)))
+                            .catch((err) => next(err))
+                    })
+                    .catch((err) => next(err))
+            })
+            .catch(err => next(err))
+    }
+}
+
 function addSubCategory({params: {uid}, body}, res, next){
     if (body.childUid !== undefined){
         //no need to create new category if category to be assigned already exists
 
         return categoriesService.getByIdMongooseUse(uid)
             .then(parentCategory => {
+                if (parentCategory === null)
+                    throw 'Parent category not found'
                 addChildCategory(parentCategory, body.childUid)
                 .then(parentWithChild => res.json(parentWithChild))
                 .catch( err => {
@@ -91,8 +125,8 @@ function addSubCategory({params: {uid}, body}, res, next){
     else{
         // create new category if category to be assigned does not exist
         return categoriesService.createOne(body)
-        .then(({_id}) => {
-            categoriesService.getByIdMongooseUse(uid)
+            .then(({_id}) => {
+                categoriesService.getByIdMongooseUse(uid)
                 .then( parentCategory => {
                     addChildCategory(parentCategory, _id)
                     .then(parentWithChild => res.json(parentWithChild))
@@ -112,4 +146,17 @@ async function addChildCategory(parent, childId){
 
     parent.subCategories.push(childId)
     return await parent.save()
+}
+
+async function addMainChild(parent, child){
+    
+    if (parent.mainSubcategory !== child || parent.mainSubcategory === undefined || parent.mainSubcategory === null){
+        
+        parent.mainSubCategory = child._id
+        console.log(parent.mainSubCategory)
+        return await parent.save()
+    }
+    else{
+        throw `${child.shortName} is already the main sub-category`
+    }
 }

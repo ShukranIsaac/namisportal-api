@@ -8,7 +8,7 @@ const CategorySchema = new Schema(
         about: { type: String, required: [true, 'Category about field is required'] },
         shortName: { type: String, required: [true, 'Category short name is required'] },
         content: {type:String},
-        mainCategory: { type: Schema.Types.ObjectId, ref: 'Category' },
+        mainSubCategory: { type: Schema.Types.ObjectId, ref: 'Category' },
         documents: [
             { type: Schema.Types.ObjectId, ref: 'File' }
         ],
