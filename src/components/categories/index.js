@@ -84,7 +84,6 @@ function addMainSubcategory({params: {uid}, body}, res, next){
         
         return categoriesService.getByIdMongooseUse(uid)
             .then((parent) => {
-                
                 if (parent === null)
                     throw 'Parent category not found'
                 categoriesService.getByIdMongooseUse(body.childUid)
@@ -150,10 +149,9 @@ async function addChildCategory(parent, childId){
 
 async function addMainChild(parent, child){
     
-    if (parent.mainSubcategory !== child || parent.mainSubcategory === undefined || parent.mainSubcategory === null){
+    if (parent.mainSubCategory.toString() !== child._id.toString() || parent.mainSubCategory === undefined || parent.mainSubCategory === null){
         
         parent.mainSubCategory = child._id
-        console.log(parent.mainSubCategory)
         return await parent.save()
     }
     else{

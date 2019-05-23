@@ -18,7 +18,7 @@ module.exports = router
 
 function getAllNews(req, res, next)  {  
     return newsService.getAll()
-        .then( News => res.json(News))
+        .then( news => res.json(news))
         .catch( err => next(err))
 }
 

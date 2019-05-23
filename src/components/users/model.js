@@ -10,7 +10,8 @@ const UserSchema = new Schema({
     createdDate: { type: Date, default: Date.now },
     roles: {
         writer: {type: Boolean, default: false},
-        publisher: {type: Boolean, default: false}
+        publisher: {type: Boolean, default: false},
+        admin: {type: Boolean, default: false}
     },
 });
 

@@ -45,10 +45,14 @@ function getById(req, res, next) {
         .catch(err => next(err));
 }
 
-function update(req, res, next) {   
-    userService.update(req.params.id, req.body)
+function update(req, res, next) { 
+    if(req.session.user._uid !== req.params.id){
+        res.json({message: "cannot update"})
+    }else{
+        userService.update(req.params.id, req.body)
         .then((user) => res.json(user))
-        .catch(err => next(err));
+        .catch(err => next(err))
+    }
 }
 
 function _delete(req, res, next) {

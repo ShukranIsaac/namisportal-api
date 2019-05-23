@@ -71,15 +71,15 @@ const regionDistricts = [
 // const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
 // const districtDistLines =  mapLinesToDistrict(districts, transformedDistLines)
 
-// const mappedCenters = mapCenters(marepCenters.features)
-// mapCentersToDistrict(districts, mappedCenters)
+const mappedCenters = mapCenters(marepCenters.features)
+mapCentersToDistrict(districts, mappedCenters)
 
 // const mappedTransformers = mapTransformers(parsedTransformers.features)
 // mapTransformersToDistrict(districts, mappedTransformers)
 
 
-const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
-mapPowerPlantsToDistrict(districts, mappedPowerPlants)
+// const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
+// mapPowerPlantsToDistrict(districts, mappedPowerPlants)
 
 
 
@@ -207,7 +207,7 @@ function mapCenters(centers){
                 region, district: capitalize(district), ta
             },
             geometry: {
-                _type: type,
+                type: type,
                 coordinates: newCoordinate
             }
         }
@@ -234,16 +234,16 @@ function mapCentersToDistrict(districts, centers){
             MarepCenter.collection.insertMany(districtCenters, (err, {insertedIds}) => {
                 if (err) throw new Error(err)
     
-                    const values = Object.values(insertedIds)
+                    // const values = Object.values(insertedIds)
     
-                    District.findOne({properties: {name: district}})
-                        .then(districtFromMongo => {
-                            districtFromMongo.marepCenters.push(...values)
-                            districtFromMongo.save()
-                                .then(saved => console.log(saved))
-                                .catch(err => console.error(err))
-                        })
-                        .catch(err => console.error(err))
+                    // District.findOne({properties: {name: district}})
+                    //     .then(districtFromMongo => {
+                    //         districtFromMongo.marepCenters.push(...values)
+                    //         districtFromMongo.save()
+                    //             .then(saved => console.log(saved))
+                    //             .catch(err => console.error(err))
+                    //     })
+                    //     .catch(err => console.error(err))
                 
             })
         }

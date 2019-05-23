@@ -101,3 +101,5 @@ function getDistrictAggregates ({params: {uid}}, res, next) {
             }
         )
 }
+
+function postMarepCenter(){}

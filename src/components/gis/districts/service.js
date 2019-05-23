@@ -1,5 +1,6 @@
 const District = require('./model')
 const DistributionLines = require('../distribution-lines/model')
+const MarepCenter = require('../marep-centers/model')
 
 module.exports = {
     getAll: async (name) => {
@@ -38,7 +39,19 @@ module.exports = {
             { $unwind: "$marepCenters" },
             { $group: { count: { $sum: 1 } } }
         ]
-    )
+    ),
+    postMarepCenter: async ({districtId, districtName, lat, lng}) => {
+        const center = {
+            properties: {
+                district: districtName
+            },
+            geometry: {
+                _type: 'Point',
+                coordinates: {lng, lat}
+            }
+        }
+        return await MarepCenter.create(center)
+    },
 }
 
 
