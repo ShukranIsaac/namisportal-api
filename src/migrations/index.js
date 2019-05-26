@@ -106,7 +106,7 @@ function mapSubStations(substations){
                 name: substation.substation
             },
             geometry: {
-                _type: type,
+                type: type,
                 coordinates: newCoordinate
             }
         }
@@ -154,7 +154,7 @@ function mapPowerPlants(powerPlants){
             
             },
             geometry: {
-                _type: type,
+                type: type,
                 coordinates: newCoordinate
             }
         }
@@ -215,7 +215,7 @@ function mapTransformers(transformers){
                 oilVolume: transformer.properties['oil volu21']
             },
             geometry: {
-                _type: type,
+                type: type,
                 coordinates: newCoordinate
             }
         }
@@ -375,7 +375,7 @@ function transformPolygons(polygons) {
                 const res = {
                     district,
                     geometry: {
-                        _type: 'Polygon',
+                        type: 'Polygon',
                         coordinates: mapPolygonCoordinates(polygon)
                     }
                 } 
@@ -386,7 +386,7 @@ function transformPolygons(polygons) {
             const res = {
                 district,
                 geometry: {
-                    _type: 'Polygon',
+                    type: 'Polygon',
                     coordinates: mapPolygonCoordinates(coordinates)
                 }
             }
@@ -462,7 +462,7 @@ function transformRegionPolygons(polygons) {
             const res = {
                 region,
                 geometry: {
-                    _type: 'Polygon',
+                    type: 'Polygon',
                     coordinates: mapPolygonCoordinates(polygon)
                 }
             } 
@@ -574,7 +574,7 @@ function transformDistributionLines(features){
             },  
             geometry: {
                 coordinates: mapPolyLinesCoords(coordinates),
-                _type: type
+                type: type
             }
             
         }
