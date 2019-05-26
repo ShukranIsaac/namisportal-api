@@ -9,6 +9,9 @@ const parsedPowerPlants = JSON.parse(powerPlantsJSON)
 const marepCentersJSON = fs.readFileSync(__dirname + '/marep_centres.geojson')
 const marepCenters = JSON.parse(marepCentersJSON)
 
+const powerSubStationsJSON = fs.readFileSync(__dirname + '/power_substations.geojson')
+const powerSubStations = JSON.parse(powerSubStationsJSON)
+
 const regionsJSON = fs.readFileSync(__dirname + '/regions.json')
 const parsedRegionPolygons = JSON.parse(regionsJSON)
 
@@ -30,6 +33,7 @@ mongoose.connect('mongodb://localhost/test', { useNewUrlParser: true })
 
 const DistributionLines = require('../components/gis/distribution-lines/model')
 const PowerPlant = require('../components/gis/power-plants/model')
+const SubStation = require('../components/gis/sub-stations/model')
 const MarepCenter = require('../components/gis/marep-centers/model')
 const Transformer = require('../components/gis/transformers/model')
 const District = require('../components/gis/districts/model')
@@ -71,8 +75,11 @@ const regionDistricts = [
 // const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
 // const districtDistLines =  mapLinesToDistrict(districts, transformedDistLines)
 
-const mappedCenters = mapCenters(marepCenters.features)
-mapCentersToDistrict(districts, mappedCenters)
+// const mappedCenters = mapCenters(marepCenters.features)
+// mapCentersToDistrict(districts, mappedCenters)
+
+const mappedSubStations = mapSubStations(powerSubStations.features)
+mapSubStationsToDistrict(districts, mappedSubStations)
 
 // const mappedTransformers = mapTransformers(parsedTransformers.features)
 // mapTransformersToDistrict(districts, mappedTransformers)
@@ -81,7 +88,53 @@ mapCentersToDistrict(districts, mappedCenters)
 // const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
 // mapPowerPlantsToDistrict(districts, mappedPowerPlants)
 
+//substation stuffies
+function mapSubStations(substations){
+    return substations.map((substation) => {
 
+        const { geometry: { type , coordinates}, properties: {region, district, ta, location4, secondar14, transimiss} } = substation
+        const newCoordinate =  mapCoordinates(coordinates)
+        
+        const obj = {
+            properties: {
+                region, ta,
+                location: location4,
+                district: capitalize(district), 
+                secondary: secondar14,
+                transmission: transimiss,
+                asset: substation['asset ta16'],
+                name: substation.substation
+            },
+            geometry: {
+                _type: type,
+                coordinates: newCoordinate
+            }
+        }
+        return obj
+    })
+}
+
+function mapSubStationsToDistrict(districts, substations){
+    return districts.map((district) => {
+        const districtSubstations = substations.filter((powerPlant) => powerPlant.properties.district === district)
+        
+        if (districtSubstations.length > 0){
+            SubStation.collection.insertMany(districtSubstations, (err, {insertedIds}) => {
+                if (err) throw new Error(err)
+                const values = Object.values(insertedIds)
+    
+                District.findOne({properties: {name: district}})
+                    .then(districtFromMongo => {
+                        districtFromMongo.powerSubStations.push(...values)
+                        districtFromMongo.save()
+                            .then(saved => console.log(saved))
+                            .catch(err => console.error(err))
+                    })
+                    .catch(err => console.error(err))
+            })
+        }
+    })
+}
 
 //power plants stuffies
 function mapPowerPlants(powerPlants){

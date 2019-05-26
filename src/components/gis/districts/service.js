@@ -1,5 +1,5 @@
 const District = require('./model')
-const DistributionLines = require('../distribution-lines/model')
+const SubStation = require('../sub-stations/model')
 const MarepCenter = require('../marep-centers/model')
 
 module.exports = {
@@ -33,6 +33,7 @@ module.exports = {
         }
         
     },
+    getPowerSubStations: async (id) => await District.findById(id).populate('powerSubStations').lean(),
     getAggregates: async (id) => await District.aggregate(
         [
             { $match: {"_id" : id}},

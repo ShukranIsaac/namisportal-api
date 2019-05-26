@@ -10,6 +10,7 @@ router.get('/:uid/polygons', getPolygons)
 router.get('/:uid/aggregates', getDistrictAggregates)
 router.get('/:uid/transformers', getTransformers)
 router.get('/:uid/marep-centers', getMarepCenters)
+router.get('/:uid/power-sub-stations', getPowerSubStations)
 router.get('/:uid/distribution-lines', getDistrinutionLines)
 
 module.exports = router
@@ -57,8 +58,14 @@ function getTransformers({params: {uid}, query: {position}}, res, next)  {
 }
 
 function getMarepCenters({params: {uid}}, res, next)  {
-    return districtsService.getMarepcenters(uid, )
+    return districtsService.getMarepcenters(uid)
         .then( districts => res.json(districts.marepCenters))
+        .catch( err => next(err))
+}
+
+function getPowerSubStations({params: {uid}}, res, next)  {
+    return districtsService.getPowerSubStations(uid)
+        .then( ({powerSubStations}) => res.json(powerSubStations))
         .catch( err => next(err))
 }
 

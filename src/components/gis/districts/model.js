@@ -26,6 +26,9 @@ const DistrictSchema = new Schema(
         ],
         powerPlants: [
             { type: Schema.Types.ObjectId, ref: 'PowerPlant'}
+        ],
+        powerSubStations: [
+            { type: Schema.Types.ObjectId, ref: 'SubStation' }
         ]
         
     },
