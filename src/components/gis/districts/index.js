@@ -65,12 +65,11 @@ function getMarepCenters({params: {uid}}, res, next)  {
 
 function getPowerSubStations({params: {uid}}, res, next)  {
     return districtsService.getPowerSubStations(uid)
-        .then( ({powerSubStations}) => res.json(powerSubStations))
+        .then( (powerSubStations) => res.json(powerSubStations))
         .catch( err => next(err))
 }
 
 function getDistrinutionLines({params: {uid}, query: {voltage}}, res, next)  {
-    console.log(voltage)
     
     if (voltage === '11'){
         const voltageQuery = '11KV'

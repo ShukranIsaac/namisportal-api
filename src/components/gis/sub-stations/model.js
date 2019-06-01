@@ -16,13 +16,20 @@ const SubStationSchema = new Schema(
 
         },
         geometry: {
-            _type: String,
+            type: { type: Schema.Types.String},
             coordinates: {lng: Number, lat: Number}
+        },
+        geo: {
+            type: { type: Schema.Types.String},
+            coordinates: [
+                [Number, Number]
+            ]
         }
     },
     {collection: 'sub_stations'}
 );
 
+SubStationSchema.index({ geo: "2dsphere" })
 SubStationSchema.plugin(mongooseStringQuery)
 
 module.exports = mongoose.model('SubStation', SubStationSchema)

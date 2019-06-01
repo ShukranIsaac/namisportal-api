@@ -41,7 +41,11 @@ module.exports = {
         }
         
     },
-    getPowerSubStations: async (id) => await District.findById(id).populate('powerSubStations').lean(),
+    getPowerSubStations: async (id) => {
+        const district = await District.findById(id).select('-geometry -properties')
+
+        return await SubStation.find().where('geo').within(district.location).select('-geo').lean()
+    },
     getAggregates: async (id) => await District.aggregate(
         [
             { $match: {"_id" : id}},

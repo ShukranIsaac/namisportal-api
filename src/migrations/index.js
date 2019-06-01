@@ -78,11 +78,11 @@ const regionDistricts = [
 // const mappedCenters = mapCenters(marepCenters.features)
 // mapCentersToDistrict(districts, mappedCenters)
 
-// const mappedSubStations = mapSubStations(powerSubStations.features)
-// mapSubStationsToDistrict(districts, mappedSubStations)
+const mappedSubStations = mapSubStations(powerSubStations.features)
+mapSubStationsToDistrict(mappedSubStations)
 
-const mappedTransformers = mapTransformers(parsedTransformers.features)
-mapTransformersToDistrict(mappedTransformers)
+// const mappedTransformers = mapTransformers(parsedTransformers.features)
+// mapTransformersToDistrict(mappedTransformers)
 
 
 // const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
@@ -92,9 +92,8 @@ mapTransformersToDistrict(mappedTransformers)
 function mapSubStations(substations){
     return substations.map((substation) => {
 
-        const { geometry: { type , coordinates}, properties: {region, district, ta, location4, secondar14, transimiss} } = substation
+        const { geometry: { type , coordinates}, properties: {region, district, ta, location4, secondar14, transimiss } } = substation
         const newCoordinate =  mapCoordinates(coordinates)
-        
         const obj = {
             properties: {
                 region, ta,
@@ -102,37 +101,25 @@ function mapSubStations(substations){
                 district: capitalize(district), 
                 secondary: secondar14,
                 transmission: transimiss,
-                asset: substation['asset ta16'],
-                name: substation.substation
+                asset: substation.properties['asset ta16'],
+                name: substation.properties.substation
             },
             geometry: {
                 type: type,
                 coordinates: newCoordinate
+            },
+            geo: {
+                type: type,
+                coordinates: coordinates
             }
         }
         return obj
     })
 }
 
-function mapSubStationsToDistrict(districts, substations){
-    return districts.map((district) => {
-        const districtSubstations = substations.filter((powerPlant) => powerPlant.properties.district === district)
-        
-        if (districtSubstations.length > 0){
-            SubStation.collection.insertMany(districtSubstations, (err, {insertedIds}) => {
-                if (err) throw new Error(err)
-                const values = Object.values(insertedIds)
-    
-                District.findOne({properties: {name: district}})
-                    .then(districtFromMongo => {
-                        districtFromMongo.powerSubStations.push(...values)
-                        districtFromMongo.save()
-                            .then(saved => console.log(saved))
-                            .catch(err => console.error(err))
-                    })
-                    .catch(err => console.error(err))
-            })
-        }
+function mapSubStationsToDistrict(substations){
+    return SubStation.collection.insertMany(substations, (err, {insertedIds}) => {
+        if (err) throw new Error(err)
     })
 }
 
