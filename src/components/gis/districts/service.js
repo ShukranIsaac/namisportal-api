@@ -9,13 +9,13 @@ module.exports = {
         if (name !== undefined){
             return await District.findOne({properties: {name}}).select("-location").lean()
         }else{
-            return await District.find({}).select("-location -geometry").lean()
+            return await District.find({}).select("-location -polygons").lean()
         }
     },
     getById: async (id) => await District.findById(id).select("-location").lean(),
     getPolygons: async (id) => await District.findById(id).populate('polygons').lean(),
     getMarepcenters: async (id) => {
-        const district = await District.findById(id).select('-geometry -properties')
+        const district = await District.findById(id).select('-polygons -properties')
 
         return await MarepCenter.find().where('geo').within(district.location).select('-geo').lean()
         
@@ -23,11 +23,11 @@ module.exports = {
     getTransformers: async (id, position=null) => {
         
         if (position !== null){
-            const district = await District.findById(id).select('-geometry -properties')
+            const district = await District.findById(id).select('-polygons -properties')
             return await Transformer.find().where({'properties.position': position}).where('geo').within(district.location).select('-geo').lean()
         }
         else{
-            const district = await District.findById(id).select('-geometry -properties')
+            const district = await District.findById(id).select('-polygons -properties')
             return await Transformer.find().where('geo').within(district.location).select('-geo').lean()
         }
         
@@ -35,17 +35,17 @@ module.exports = {
     getDistributionLines: async (id, voltage=null) => {
         
         if (voltage !== null){
-            const district = await District.findById(id).select('-geometry -properties')
+            const district = await District.findById(id).select('-polygons -properties')
             return await DistributionLines.find().where({'properties.voltage':voltage}).where('lines').within(district.location).select('-lines').lean()
         }
         else{
-            const district = await District.findById(id).select('-geometry -properties')
+            const district = await District.findById(id).select('-polygons -properties')
             return await DistributionLines.find().where('lines').within(district.location).select('-lines').lean()
         }
         
     },
     getPowerSubStations: async (id) => {
-        const district = await District.findById(id).select('-geometry -properties')
+        const district = await District.findById(id).select('-polygons -properties')
 
         return await SubStation.find().where('geo').within(district.location).select('-geo').lean()
     },

@@ -62,13 +62,13 @@ const regionDistricts = [
 // regionsToMongo(regionDistricts)
 
 // const polygs = transformRegionPolygons(parsedRegionPolygons.features)
-// regionPolgonsToMongo(polygs)
+// regionPolygonsToMongo(polygs)
 
 // const cleanedDistricts = cleanDistricts(parsedDistricts)
 // const mongoDistricts = districtsToMongo(parsedDistricts)
 
-// const polygs = transformPolygons(parsedDistrictPolygons.features)
-// polgonsToMongo(districts, polygs)
+const polygs = transformPolygons(parsedDistrictPolygons.features)
+polygonsToMongo(districts, polygs)
 
 // mapDistrictsToRegions(regionDistricts)
 
@@ -341,7 +341,7 @@ function cleanDistricts( districts ) {
 
 function districtsToMongo( dirtyDistricts ){
     const districts = cleanDistricts(dirtyDistricts)
-    District.insertMany(districts).then(districts => { console.log(districts)})
+    return District.insertMany(districts).then(districts => { console.log(districts)})
 }
 
 
@@ -351,7 +351,7 @@ function districtsToMongo( dirtyDistricts ){
 /**
  * 1 transform district polygons to goodly format
  *      - remember polygon geometry coordinate features are arrays of polygons
- * 2 bulk insert polgons to database
+ * 2 bulk insert polygons to database
  * 3 map each polygon to its district
  */
 function transformPolygons(polygons) {
@@ -359,36 +359,35 @@ function transformPolygons(polygons) {
         const {geometry: {coordinates, type}} = polygon
         const district = polygon.properties.name_1
 
+        const obj = {
+            district,
+            polygons: [],
+            location: {
+                type,
+                coordinates
+            }
+        }
+
         if (type === 'MultiPolygon'){
            
-            return coordinates.map(polygon => { 
-                const res = {
-                    district,
-                    geometry: {
+            coordinates.forEach(polygon => { 
+                obj.polygons.push({
+                        geometry: {
                         type: 'Polygon',
                         coordinates: mapPolygonCoordinates(polygon)
-                    },
-                    location: {
-                        type: 'Polygon',
-                        coordinates: polygon
                     }
-                } 
-                
-                return res
+                })
             })
+
+            return obj
         }else{
-            const res = {
-                district,
+            obj.polygons.push({
                 geometry: {
                     type: 'Polygon',
                     coordinates: mapPolygonCoordinates(coordinates)
-                },
-                location: {
-                    type: 'Polygon',
-                    coordinates: coordinates
                 }
-            }
-            return res
+            })
+            return obj
         }
         
     })
@@ -420,7 +419,7 @@ function reduceMult(multi){
     }, [])
 }
 
-function polgonsToMongo(districts, polygons){
+function polygonsToMongo(districts, polygons){
     return districts.map(district => {
         const reducedPolygons = reduceMult(polygons)
         const districtPolygons = reducedPolygons.filter((polygon) => polygon.district === district)// || polygons.filter(polygon => polygon.constructor === Array)
@@ -428,11 +427,10 @@ function polgonsToMongo(districts, polygons){
         // return Polygon.collection.insertMany(districtPolygons, (err, {insertedIds}) => {
         //     if (err) throw new Error(err)
         // })
-
         return District.findOne({properties: {name: district}})
             .then(district => {
                 console.log('oki')
-                district.geometry = districtPolygons[0].geometry
+                district.polygons = districtPolygons[0].polygons
                 district.location = districtPolygons[0].location
                 district.save()
 
@@ -462,7 +460,7 @@ function polgonsToMongo(districts, polygons){
 /**
  * 1 transform region polygons to goodly format
  *      - remember polygon geometry coordinate features are arrays of polygons
- * 2 bulk insert polgons to database
+ * 2 bulk insert polygons to database
  * 3 map each polygon to its regions
  */
 function transformRegionPolygons(polygons) {
@@ -504,7 +502,7 @@ function mapPolygonCoordinatesArray(polygons){
     })
 }
 
-function regionPolgonsToMongo(polygons){
+function regionPolygonsToMongo(polygons){
     const regions = ['Northern Region', 'Central Region', 'Southern Region']
     return regions.map(region => {
         const reducedPolygons = reduceMult(polygons)
