@@ -70,7 +70,7 @@ const regionDistricts = [
 // const polygs = transformPolygons(parsedDistrictPolygons.features)
 // polygonsToMongo(districts, polygs)
 
-mapDistrictsToRegions(regionDistricts)
+// mapDistrictsToRegions(regionDistricts)
 
 // const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
 // const districtDistLines =  mapLinesToDistrict(transformedDistLines)
@@ -85,8 +85,8 @@ mapDistrictsToRegions(regionDistricts)
 // mapTransformersToDistrict(mappedTransformers)
 
 
-// const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
-// mapPowerPlantsToDistrict(mappedPowerPlants)
+const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
+mapPowerPlantsToDistrict(mappedPowerPlants)
 
 //substation stuffies
 function mapSubStations(substations){
