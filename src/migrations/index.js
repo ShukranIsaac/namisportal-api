@@ -72,8 +72,8 @@ const regionDistricts = [
 
 // mapDistrictsToRegions(regionDistricts)
 
-const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
-const districtDistLines =  mapLinesToDistrict(transformedDistLines)
+// const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
+// const districtDistLines =  mapLinesToDistrict(transformedDistLines)
 
 // const mappedCenters = mapCenters(marepCenters.features)
 // mapCentersToDistrict(districts, mappedCenters)
@@ -85,8 +85,8 @@ const districtDistLines =  mapLinesToDistrict(transformedDistLines)
 // mapTransformersToDistrict(mappedTransformers)
 
 
-// const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
-// mapPowerPlantsToDistrict(districts, mappedPowerPlants)
+const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
+mapPowerPlantsToDistrict(mappedPowerPlants)
 
 //substation stuffies
 function mapSubStations(substations){
@@ -143,6 +143,10 @@ function mapPowerPlants(powerPlants){
             geometry: {
                 type: type,
                 coordinates: newCoordinate
+            },
+            geo: {
+                type: type,
+                coordinates: coordinates
             }
         }
 
@@ -150,26 +154,29 @@ function mapPowerPlants(powerPlants){
     })
 }
 
-function mapPowerPlantsToDistrict(districts, powerPlants){
-    return districts.map((district) => {
-        const districtPowerPlants = powerPlants.filter((powerPlant) => powerPlant.properties.district === district)
-        
-        if (districtPowerPlants.length > 0){
-            PowerPlant.collection.insertMany(districtPowerPlants, (err, {insertedIds}) => {
-                if (err) throw new Error(err)
-                const values = Object.values(insertedIds)
-    
-                District.findOne({properties: {name: district}})
-                    .then(districtFromMongo => {
-                        districtFromMongo.powerPlants.push(...values)
-                        districtFromMongo.save()
-                            .then(saved => console.log(saved))
-                            .catch(err => console.error(err))
-                    })
-                    .catch(err => console.error(err))
-            })
-        }
+function mapPowerPlantsToDistrict(powerPlants){
+    return PowerPlant.collection.insertMany(powerPlants, (err, {insertedIds}) => {
+        if (err) throw new Error(err) 
     })
+    // return districts.map((district) => {
+    //     const districtPowerPlants = powerPlants.filter((powerPlant) => powerPlant.properties.district === district)
+        
+    //     if (districtPowerPlants.length > 0){
+    //         PowerPlant.collection.insertMany(districtPowerPlants, (err, {insertedIds}) => {
+    //             if (err) throw new Error(err)
+    //             const values = Object.values(insertedIds)
+    
+    //             District.findOne({properties: {name: district}})
+    //                 .then(districtFromMongo => {
+    //                     districtFromMongo.powerPlants.push(...values)
+    //                     districtFromMongo.save()
+    //                         .then(saved => console.log(saved))
+    //                         .catch(err => console.error(err))
+    //                 })
+    //                 .catch(err => console.error(err))
+    //         })
+    //     }
+    // })
 }
 
 //transformers stuffies

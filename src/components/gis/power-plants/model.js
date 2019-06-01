@@ -15,13 +15,20 @@ const PowerPlantSchema = new Schema(
 
         },
         geometry: {
-            _type: String,
+            type: { type: Schema.Types.String},
             coordinates: {lng: Number, lat: Number}
+        },
+        geo: {
+            type: { type: Schema.Types.String},
+            coordinates: [
+                [Number, Number]
+            ]
         }
     },
     {collection: 'power_plants'}
 );
 
+PowerPlantSchema.index({ geo: "2dsphere" })
 PowerPlantSchema.plugin(mongooseStringQuery)
 
 module.exports = mongoose.model('PowerPlant', PowerPlantSchema)
