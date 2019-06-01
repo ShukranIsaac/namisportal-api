@@ -9,6 +9,7 @@ const router = express.Router()
 router.get('/', (req, res) => {
     return Region.find({})
             .populate('districts', 'properties')
+            .select('-location')
             .lean()
             .then(regions => res.json(regions))
             .catch((err) =>  console.error(err))
@@ -18,12 +19,12 @@ router.get('/', (req, res) => {
 router.get('/:uid', (req, res) => {
     const { uid } = req.params
     const opts = [
-        { path: 'polygons', select: 'geometry' },
         { path: 'districts', select: 'properties' }
     ]
 
     return Region.findById(uid)
             .populate(opts)
+            .select('-location')
             .lean()
             .then(region => res.json(region))
 })

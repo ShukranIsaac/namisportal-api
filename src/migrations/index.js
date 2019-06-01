@@ -67,10 +67,10 @@ const regionDistricts = [
 // const cleanedDistricts = cleanDistricts(parsedDistricts)
 // const mongoDistricts = districtsToMongo(parsedDistricts)
 
-const polygs = transformPolygons(parsedDistrictPolygons.features)
-polygonsToMongo(districts, polygs)
+// const polygs = transformPolygons(parsedDistrictPolygons.features)
+// polygonsToMongo(districts, polygs)
 
-// mapDistrictsToRegions(regionDistricts)
+mapDistrictsToRegions(regionDistricts)
 
 // const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
 // const districtDistLines =  mapLinesToDistrict(transformedDistLines)
@@ -85,8 +85,8 @@ polygonsToMongo(districts, polygs)
 // mapTransformersToDistrict(mappedTransformers)
 
 
-const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
-mapPowerPlantsToDistrict(mappedPowerPlants)
+// const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
+// mapPowerPlantsToDistrict(mappedPowerPlants)
 
 //substation stuffies
 function mapSubStations(substations){
@@ -424,9 +424,6 @@ function polygonsToMongo(districts, polygons){
         const reducedPolygons = reduceMult(polygons)
         const districtPolygons = reducedPolygons.filter((polygon) => polygon.district === district)// || polygons.filter(polygon => polygon.constructor === Array)
         
-        // return Polygon.collection.insertMany(districtPolygons, (err, {insertedIds}) => {
-        //     if (err) throw new Error(err)
-        // })
         return District.findOne({properties: {name: district}})
             .then(district => {
                 console.log('oki')
@@ -437,19 +434,6 @@ function polygonsToMongo(districts, polygons){
                 console.log(districtPolygons[0], district)
             })
             .catch(err => console.log(err))
-        // return districtPolygons.map(async polygon => {
-        //     const { geometry } = polygon;
-        //     const { _id } = await Polygon.create({geometry})
-        //     //console.log(_id)
-        //     District.find({properties: {name: district}})
-        //     .then(district => {
-        //         district[0].polygons.push({_id})
-        //         //console.log(district[0].polygons)
-        //         district[0].save()
-        //         .then(district => console.log(district))
-        //         .catch(err => console.error(err))
-        //     }).catch(err => console.error(err))
-        // })
     })
 }
 
@@ -466,22 +450,36 @@ function polygonsToMongo(districts, polygons){
 function transformRegionPolygons(polygons) {
     return polygons.map(polygon => {
         const {geometry: {coordinates, type}, properties: {region}} = polygon
+        const obj = {
+            region,
+            polygons: [],
+            location: {
+                type,
+                coordinates
+            }
+        }
 
-        return coordinates.map(polygon => { 
-            const res = {
-                region,
+        if (type === 'MultiPolygon'){
+           
+            coordinates.forEach(polygon => { 
+                obj.polygons.push({
+                        geometry: {
+                        type: 'Polygon',
+                        coordinates: mapPolygonCoordinates(polygon)
+                    }
+                })
+            })
+
+            return obj
+        }else{
+            obj.polygons.push({
                 geometry: {
                     type: 'Polygon',
-                    coordinates: mapPolygonCoordinates(polygon)
-                },
-                location: {
-                    type: 'Polygon',
-                    coordinates: polygon
+                    coordinates: mapPolygonCoordinates(coordinates)
                 }
-            } 
-            
-            return res
-        })
+            })
+            return obj
+        }
         
     })
 }
@@ -507,19 +505,32 @@ function regionPolygonsToMongo(polygons){
     return regions.map(region => {
         const reducedPolygons = reduceMult(polygons)
         const regionPolygons = reducedPolygons.filter((polygon) => polygon.region === region)
-        
-        return Polygon.collection.insertMany(regionPolygons, (err, {insertedIds}) => {
-                if (err) throw new Error(err)
-                const values = Object.values(insertedIds)
-                
-                Region.find({properties: {name: region}}).limit(1)
-                .then(region => {
-                    region[0].polygons.push(...values)
-                    region[0].save()
-                    .then(region => console.log(region))
-                    .catch(err => console.error(err))
-                }).catch(err => console.error(err))
+
+        return Region.findOne({properties: {name: region}})
+            .then(region => {
+
+                region.polygons = regionPolygons[0].polygons
+                region.location = regionPolygons[0].location
+                region.save()
+
+                console.log(regionPolygons[0])
             })
+            .catch(err => console.log(err))
+
+        
+        
+        // return Polygon.collection.insertMany(regionPolygons, (err, {insertedIds}) => {
+        //         if (err) throw new Error(err)
+        //         const values = Object.values(insertedIds)
+                
+        //         Region.find({properties: {name: region}}).limit(1)
+        //         .then(region => {
+        //             region[0].polygons.push(...values)
+        //             region[0].save()
+        //             .then(region => console.log(region))
+        //             .catch(err => console.error(err))
+        //         }).catch(err => console.error(err))
+        //     })
 
     })
 }

@@ -9,8 +9,19 @@ const RegionSchema = new Schema(
             name: String
         },
         polygons: [
-            { type: Schema.Types.ObjectId, ref: 'Polygon' }
+            {
+                geometry: {
+                    type: { type: Schema.Types.String},
+                    coordinates: [
+                        [{}]
+                    ]
+                }
+            }
         ],
+        location: {
+            type: { type: Schema.Types.String},
+            coordinates: []
+        },
         centroids: {
             lat: Number,
             lng: Number
