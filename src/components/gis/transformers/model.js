@@ -26,13 +26,20 @@ const TransformerSchema = new Schema(
             oilVolume: String
         },
         geometry: {
-            _type: String,
+            type: { type: Schema.Types.String},
             coordinates: {lng: Number, lat: Number}
+        },
+        geo: {
+            type: { type: Schema.Types.String},
+            coordinates: [
+                [Number, Number]
+            ]
         }
     },
     {collection: 'transformers'}
 );
 
+TransformerSchema.index({ geo: "2dsphere" })
 TransformerSchema.plugin(mongooseStringQuery)
 
 module.exports = mongoose.model('Transformer', TransformerSchema)

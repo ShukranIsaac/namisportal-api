@@ -38,20 +38,20 @@ function getTransformers({params: {uid}, query: {position}}, res, next)  {
     if (position === 'overhead'){
         const positionQuery = 'POLE MOUNTED'
         return districtsService.getTransformers(uid, positionQuery)
-            .then( districts => res.json(districts.transformers))
+            .then( transformers => res.json(transformers))
             .catch( err => next(err))
     }
 
     else if (position === 'ground'){
         const positionQuery = 'GROUND MOUNTED'
         return districtsService.getTransformers(uid, positionQuery)
-            .then( districts => res.json(districts.transformers))
+            .then( transformers => res.json(transformers))
             .catch( err => next(err))
     }
 
     else{
         return districtsService.getTransformers(uid)
-            .then( districts => res.json(districts.transformers))
+            .then( transformers => res.json(transformers))
             .catch( err => next(err))
     }
     

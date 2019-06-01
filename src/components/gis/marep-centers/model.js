@@ -21,6 +21,7 @@ const MarepCenterSchema = new Schema(
     {collection: 'marep_centres'}
 );
 
+MarepCenterSchema.index({ geo: "2dsphere" })
 MarepCenterSchema.plugin(mongooseStringQuery)
 
 module.exports = mongoose.model('MarepCenter', MarepCenterSchema)

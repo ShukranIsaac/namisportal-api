@@ -75,14 +75,14 @@ const regionDistricts = [
 // const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
 // const districtDistLines =  mapLinesToDistrict(districts, transformedDistLines)
 
-const mappedCenters = mapCenters(marepCenters.features)
-mapCentersToDistrict(districts, mappedCenters)
+// const mappedCenters = mapCenters(marepCenters.features)
+// mapCentersToDistrict(districts, mappedCenters)
 
 // const mappedSubStations = mapSubStations(powerSubStations.features)
 // mapSubStationsToDistrict(districts, mappedSubStations)
 
-// const mappedTransformers = mapTransformers(parsedTransformers.features)
-// mapTransformersToDistrict(districts, mappedTransformers)
+const mappedTransformers = mapTransformers(parsedTransformers.features)
+mapTransformersToDistrict(mappedTransformers)
 
 
 // const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
@@ -217,6 +217,10 @@ function mapTransformers(transformers){
             geometry: {
                 type: type,
                 coordinates: newCoordinate
+            },
+            geo: {
+                type: type,
+                coordinates: coordinates
             }
         }
 
@@ -224,25 +228,9 @@ function mapTransformers(transformers){
     })
 }
 
-function mapTransformersToDistrict(districts, transformers){
-    return districts.map((district) => {
-        const districtTransformers = transformers.filter((transformer) => transformer.properties.district === district)
-        
-        if (districtTransformers.length > 0){
-            Transformer.collection.insertMany(districtTransformers, (err, {insertedIds}) => {
-                if (err) throw new Error(err)
-                const values = Object.values(insertedIds)
-    
-                District.findOne({properties: {name: district}})
-                    .then(districtFromMongo => {
-                        districtFromMongo.transformers.push(...values)
-                        districtFromMongo.save()
-                            .then(saved => console.log(saved))
-                            .catch(err => console.error(err))
-                    })
-                    .catch(err => console.error(err))
-            })
-        }
+function mapTransformersToDistrict(transformers){
+    return Transformer.collection.insertMany(transformers, (err, {insertedIds}) => {
+        if (err) throw new Error(err)
     })
 }
 

@@ -1,6 +1,7 @@
 const District = require('./model')
 const SubStation = require('../sub-stations/model')
 const MarepCenter = require('../marep-centers/model')
+const Transformer = require('../transformers/model')
 
 module.exports = {
     getAll: async (name) => {
@@ -21,10 +22,12 @@ module.exports = {
     getTransformers: async (id, position=null) => {
         
         if (position !== null){
-            return await District.findById(id).populate({path: 'transformers', match: {'properties.position':position}}).lean() 
+            const district = await District.findById(id).select('-geometry -properties')
+            return await Transformer.find().where({'properties.position': position}).where('geo').within(district.location).select('-geo').lean()
         }
         else{
-            return await District.findById(id).populate('transformers').lean()
+            const district = await District.findById(id).select('-geometry -properties')
+            return await Transformer.find().where('geo').within(district.location).select('-geo').lean()
         }
         
     },
