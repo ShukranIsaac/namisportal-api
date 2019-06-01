@@ -59,9 +59,7 @@ function getTransformers({params: {uid}, query: {position}}, res, next)  {
 
 function getMarepCenters({params: {uid}}, res, next)  {
     return districtsService.getMarepcenters(uid)
-        .then( districts => {
-            return res.json(districts)
-        })
+        .then( centers => res.json(centers))
         .catch( err => next(err))
 }
 

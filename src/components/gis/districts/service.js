@@ -10,7 +10,7 @@ module.exports = {
             return await District.find({}).select("-location -geometry").lean()
         }
     },
-    getById: async (id) => {await District.findById(id).select("-location").lean()},
+    getById: async (id) => await District.findById(id).select("-location").lean(),
     getPolygons: async (id) => await District.findById(id).populate('polygons').lean(),
     getMarepcenters: async (id) => {
         const district = await District.findById(id).select('-geometry -properties')
