@@ -74,20 +74,20 @@ function getDistrinutionLines({params: {uid}, query: {voltage}}, res, next)  {
     if (voltage === '11'){
         const voltageQuery = '11KV'
         return districtsService.getDistributionLines(uid, voltageQuery)
-        .then( districts => res.json(districts.distributionLines))
+        .then( distributionLines => res.json(distributionLines))
         .catch( err => next(err))
     }
         
     else if (voltage === '33'){
         const voltageQuery = '33KV'
         return districtsService.getDistributionLines(uid, voltageQuery)
-        .then( districts => res.json(districts.distributionLines))
+        .then( distributionLines => res.json(distributionLines))
         .catch( err => next(err))
     }
     
     else{
         return districtsService.getDistributionLines(uid)
-        .then( districts => res.json(districts.distributionLines))
+        .then( distributionLines => res.json(distributionLines))
         .catch( err => next(err))
     }
 

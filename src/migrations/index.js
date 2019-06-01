@@ -72,14 +72,14 @@ const regionDistricts = [
 
 // mapDistrictsToRegions(regionDistricts)
 
-// const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
-// const districtDistLines =  mapLinesToDistrict(districts, transformedDistLines)
+const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
+const districtDistLines =  mapLinesToDistrict(transformedDistLines)
 
 // const mappedCenters = mapCenters(marepCenters.features)
 // mapCentersToDistrict(districts, mappedCenters)
 
-const mappedSubStations = mapSubStations(powerSubStations.features)
-mapSubStationsToDistrict(mappedSubStations)
+// const mappedSubStations = mapSubStations(powerSubStations.features)
+// mapSubStationsToDistrict(mappedSubStations)
 
 // const mappedTransformers = mapTransformers(parsedTransformers.features)
 // mapTransformersToDistrict(mappedTransformers)
@@ -528,36 +528,9 @@ function regionPolgonsToMongo(polygons){
  * 3. map lines to districts
  */
 
-function mapLinesToDistrict(districts, lines){
-    const co = require('co');
-
-    return districts.map((district) => {
-        const districtlines = lines.filter((line) => line.properties.district === district)
-        
-        if (districtlines.length > 0){
-
-            try {
-                DistributionLines.collection.insertMany(districtlines, (err, docs) => {
-                    if (err) throw new Error(err)
-                    const values = Object.values(docs.insertedIds)
-
-                    co(function*() {
-                        const districtCursor = District.find({properties: {name: district}}).limit(1).cursor()
-                        for (let doc = yield districtCursor.next(); doc != null; doc = yield districtCursor.next()) {
-                            doc.distributionLines.push(...values)
-                            doc.save()
-                            console.log(doc)
-                        }
-                            
-                    })
-
-                })
-                
-            }
-            catch(error){
-                console.error(error)
-            }
-        }
+function mapLinesToDistrict(lines){
+    return DistributionLines.collection.insertMany(lines, (err, docs) => {
+        if (err) throw new Error(err)
     })
 }
 
@@ -589,8 +562,11 @@ function transformDistributionLines(features){
                 substation: Substati17
             },  
             geometry: {
-                coordinates: mapPolyLinesCoords(coordinates),
-                type: type
+                type,
+                coordinates: mapPolyLinesCoords(coordinates)
+            },
+            lines: {
+                type, coordinates
             }
             
         }

@@ -17,15 +17,22 @@ const DistributionLinesSchema = new Schema(
             substation: String
         },
         geometry: {
-            _type: String,
+            type: { type: Schema.Types.String},
             coordinates: [
-                [{ lat: Number, lng: Number}]
+                [{lat: { type: Schema.Types.Number}, lng: { type: Schema.Types.Number}}]
             ]
-        }
+        },
+        lines: {
+            type: { type: Schema.Types.String},
+            coordinates: [
+                [{ type: Schema.Types.Number}, { type: Schema.Types.Number}]
+            ]
+        },
     },
     {collection: 'distribution_lines'}
 );
 
+DistributionLinesSchema.index({ lines: "2dsphere" })
 DistributionLinesSchema.plugin(mongooseStringQuery)
 
 module.exports = mongoose.model('DistributionLines', DistributionLinesSchema)
