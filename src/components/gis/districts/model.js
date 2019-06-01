@@ -8,28 +8,38 @@ const DistrictSchema = new Schema(
         properties: {
             name: String
         },
-        marepCenters: [
-            { type: Schema.Types.ObjectId, ref: 'MarepCenter' }
-        ],
-        polygons: [
-            { type: Schema.Types.ObjectId, ref: 'Polygon' }
-        ],
+        // marepCenters: [
+        //     { type: Schema.Types.ObjectId, ref: 'MarepCenter' }
+        // ],
+        marepCenters: { count: String },
+        geometry: {
+            type: { type: Schema.Types.String},
+            coordinates: [
+                [{}]
+            ]
+        },
+        location: {
+            type: { type: Schema.Types.String},
+            coordinates: [
+                []
+            ]
+        },
         centroids: {
             lat: Number,
             lng: Number
         },
-        distributionLines: [
-            { type: Schema.Types.ObjectId, ref: 'DistributionLines' }
-        ], 
-        transformers: [
-            { type: Schema.Types.ObjectId, ref: 'Transformer'}
-        ],
-        powerPlants: [
-            { type: Schema.Types.ObjectId, ref: 'PowerPlant'}
-        ],
-        powerSubStations: [
-            { type: Schema.Types.ObjectId, ref: 'SubStation' }
-        ]
+        // distributionLines: [
+        //     { type: Schema.Types.ObjectId, ref: 'DistributionLines' }
+        // ], 
+        // transformers: [
+        //     { type: Schema.Types.ObjectId, ref: 'Transformer'}
+        // ],
+        // powerPlants: [
+        //     { type: Schema.Types.ObjectId, ref: 'PowerPlant'}
+        // ],
+        // powerSubStations: [
+        //     { type: Schema.Types.ObjectId, ref: 'SubStation' }
+        // ]
         
     },
     {collection: 'district'}

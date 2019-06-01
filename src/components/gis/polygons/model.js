@@ -5,9 +5,15 @@ const mongoose = require('mongoose');
 const PolygonSchema = new Schema(
     {
         geometry: {
-            _type: String,
+            type: String,
             coordinates: [
                 [{ lat: Number, lng: Number}]
+            ]
+        },
+        location: {
+            type: String,
+            coordinates: [
+                [Number, Number]
             ]
         }
     },

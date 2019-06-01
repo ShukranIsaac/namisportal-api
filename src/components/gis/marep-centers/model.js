@@ -8,8 +8,14 @@ const MarepCenterSchema = new Schema(
             district: String
         },
         geometry: {
-            _type: String,
+            type: { type: Schema.Types.String},
             coordinates: {lng: Number, lat: Number}
+        },
+        geo: {
+            type: { type: Schema.Types.String},
+            coordinates: [
+                [Number, Number]
+            ]
         }
     },
     {collection: 'marep_centres'}

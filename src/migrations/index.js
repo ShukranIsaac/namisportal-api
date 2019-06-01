@@ -75,11 +75,11 @@ const regionDistricts = [
 // const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
 // const districtDistLines =  mapLinesToDistrict(districts, transformedDistLines)
 
-// const mappedCenters = mapCenters(marepCenters.features)
-// mapCentersToDistrict(districts, mappedCenters)
+const mappedCenters = mapCenters(marepCenters.features)
+mapCentersToDistrict(districts, mappedCenters)
 
-const mappedSubStations = mapSubStations(powerSubStations.features)
-mapSubStationsToDistrict(districts, mappedSubStations)
+// const mappedSubStations = mapSubStations(powerSubStations.features)
+// mapSubStationsToDistrict(districts, mappedSubStations)
 
 // const mappedTransformers = mapTransformers(parsedTransformers.features)
 // mapTransformersToDistrict(districts, mappedTransformers)
@@ -262,6 +262,10 @@ function mapCenters(centers){
             geometry: {
                 type: type,
                 coordinates: newCoordinate
+            },
+            geo: {
+                type: type,
+                coordinates: coordinates
             }
         }
         return centerObj
@@ -273,6 +277,10 @@ function mapCoordinates(coordinates){
         lat: coordinates[1],
         lng: coordinates[0]
     }
+}
+
+function mapCoordinatesArray(coordinates){
+    return [ coordinates[1], coordinates[0] ]
 }
 
 function capitalize(s){
@@ -377,6 +385,10 @@ function transformPolygons(polygons) {
                     geometry: {
                         type: 'Polygon',
                         coordinates: mapPolygonCoordinates(polygon)
+                    },
+                    location: {
+                        type: 'Polygon',
+                        coordinates: polygon
                     }
                 } 
                 
@@ -388,9 +400,12 @@ function transformPolygons(polygons) {
                 geometry: {
                     type: 'Polygon',
                     coordinates: mapPolygonCoordinates(coordinates)
+                },
+                location: {
+                    type: 'Polygon',
+                    coordinates: coordinates
                 }
             }
-            //console.log(res)
             return res
         }
         
@@ -428,19 +443,33 @@ function polgonsToMongo(districts, polygons){
         const reducedPolygons = reduceMult(polygons)
         const districtPolygons = reducedPolygons.filter((polygon) => polygon.district === district)// || polygons.filter(polygon => polygon.constructor === Array)
         
-        return districtPolygons.map(async polygon => {
-            const { geometry } = polygon;
-            const { _id } = await Polygon.create({geometry})
-            //console.log(_id)
-            District.find({properties: {name: district}})
+        // return Polygon.collection.insertMany(districtPolygons, (err, {insertedIds}) => {
+        //     if (err) throw new Error(err)
+        // })
+
+        return District.findOne({properties: {name: district}})
             .then(district => {
-                district[0].polygons.push({_id})
-                //console.log(district[0].polygons)
-                district[0].save()
-                .then(district => console.log(district))
-                .catch(err => console.error(err))
-            }).catch(err => console.error(err))
-        })
+                console.log('oki')
+                district.geometry = districtPolygons[0].geometry
+                district.location = districtPolygons[0].location
+                district.save()
+
+                console.log(districtPolygons[0], district)
+            })
+            .catch(err => console.log(err))
+        // return districtPolygons.map(async polygon => {
+        //     const { geometry } = polygon;
+        //     const { _id } = await Polygon.create({geometry})
+        //     //console.log(_id)
+        //     District.find({properties: {name: district}})
+        //     .then(district => {
+        //         district[0].polygons.push({_id})
+        //         //console.log(district[0].polygons)
+        //         district[0].save()
+        //         .then(district => console.log(district))
+        //         .catch(err => console.error(err))
+        //     }).catch(err => console.error(err))
+        // })
     })
 }
 
@@ -464,6 +493,10 @@ function transformRegionPolygons(polygons) {
                 geometry: {
                     type: 'Polygon',
                     coordinates: mapPolygonCoordinates(polygon)
+                },
+                location: {
+                    type: 'Polygon',
+                    coordinates: polygon
                 }
             } 
             
@@ -477,6 +510,14 @@ function mapPolygonCoordinates(polygons){
     return polygons.map( polygon => {
         return polygon.map((coordinates) => {
             return mapCoordinates(coordinates)
+        })
+    })
+}
+
+function mapPolygonCoordinatesArray(polygons){
+    return polygons.map( polygon => {
+        return polygon.map((coordinates) => {
+            return mapCoordinatesArray(coordinates)
         })
     })
 }

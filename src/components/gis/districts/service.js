@@ -5,14 +5,19 @@ const MarepCenter = require('../marep-centers/model')
 module.exports = {
     getAll: async (name) => {
         if (name !== undefined){
-            return await District.findOne({properties: {name}}).populate('polygons').lean()
+            return await District.findOne({properties: {name}}).select("-location").lean()
         }else{
-            return await District.find({}).lean()
+            return await District.find({}).select("-location -geometry").lean()
         }
     },
-    getById: async (id) => await District.findById(id).populate('polygons').lean(),
+    getById: async (id) => {await District.findById(id).select("-location").lean()},
     getPolygons: async (id) => await District.findById(id).populate('polygons').lean(),
-    getMarepcenters: async (id) => await District.findById(id).populate('marepCenters').lean(),
+    getMarepcenters: async (id) => {
+        const district = await District.findById(id).select('-geometry -properties')
+
+        return await MarepCenter.find().where('geo').within(district.location).select('-geo').lean()
+        
+    },
     getTransformers: async (id, position=null) => {
         
         if (position !== null){
