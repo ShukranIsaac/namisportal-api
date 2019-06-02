@@ -1,6 +1,7 @@
 const mongooseStringQuery = require('mongoose-string-query')
 const Schema = require('mongoose').Schema
 const mongoose = require('mongoose');
+const District = require('../districts/model')
 
 const TransformerSchema = new Schema(
     {
@@ -31,15 +32,29 @@ const TransformerSchema = new Schema(
         },
         geo: {
             type: { type: Schema.Types.String},
-            coordinates: [
-                [Number, Number]
-            ]
+            coordinates: [Number, Number]
         }
     },
     {collection: 'transformers'}
 );
 
 TransformerSchema.index({ geo: "2dsphere" })
+
+TransformerSchema.post('save', async function(doc) {
+    const district = await District.findOne({ location: { $geoIntersects: { $geometry: { type: "Point", coordinates: doc.geo.coordinates } } } })
+    const count = await mongoose.model('Transformer').find().where('geo').within(district.location).count()
+    district.transformers = {count}
+    district.save()
+});
+
+TransformerSchema.post('remove', async function(doc) {
+    
+    const district = await District.findOne({ location: { $geoIntersects: { $geometry: { type: "Point", coordinates: doc.geo.coordinates } } } })
+    const count = await mongoose.model('Transformer').find().where('geo').within(district.location).count()
+    district.transformers = {count}
+    district.save()
+});
+
 TransformerSchema.plugin(mongooseStringQuery)
 
 module.exports = mongoose.model('Transformer', TransformerSchema)
