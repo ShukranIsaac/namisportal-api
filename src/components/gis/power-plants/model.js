@@ -1,6 +1,7 @@
 const mongooseStringQuery = require('mongoose-string-query')
 const Schema = require('mongoose').Schema
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
+const District = require('../districts/model')
 
 const PowerPlantSchema = new Schema(
     {
@@ -11,8 +12,7 @@ const PowerPlantSchema = new Schema(
             region: String,
             district: String,
             name: String,
-            ta: String,
-
+            ta: String
         },
         geometry: {
             type: { type: Schema.Types.String},
@@ -20,9 +20,7 @@ const PowerPlantSchema = new Schema(
         },
         geo: {
             type: { type: Schema.Types.String},
-            coordinates: [
-                [Number, Number]
-            ]
+            coordinates: [Number, Number]
         }
     },
     {collection: 'power_plants'}
@@ -31,4 +29,35 @@ const PowerPlantSchema = new Schema(
 PowerPlantSchema.index({ geo: "2dsphere" })
 PowerPlantSchema.plugin(mongooseStringQuery)
 
+
+PowerPlantSchema.post('save', async function(doc) {
+    const district = await District.findOne({ 
+        location: { 
+            $geoIntersects: { 
+                $geometry: { 
+                    type: "Point", 
+                    coordinates: doc.geo.coordinates 
+                } 
+            } 
+        } 
+    })
+    const count = await mongoose.model(
+                        'PowerPLant', PowerPlantSchema
+                        )
+                        .find()
+                        .where('geo')
+                        .within(district.location).count()
+    district.powerPlants = {count}
+    district.save()
+});
+
+PowerPlantSchema.post('remove', async function(doc) {
+    
+    const district = await District.findOne({ location: { $geoIntersects: { $geometry: { type: "Point", coordinates: doc.geo.coordinates } } } })
+    const count = await mongoose.model('PowerPlant', PowerPlantSchema).find().where('geo').within(district.location).count()
+    district.powerPlants = {count}
+    district.save()
+});
+
 module.exports = mongoose.model('PowerPlant', PowerPlantSchema)
+

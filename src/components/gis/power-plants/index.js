@@ -7,6 +7,8 @@ router.get('/', getAllPlants)
 router.get('/:uid', getOnePlant)
 router.get('/:uid/filters', getFilters)
 
+router.post('/', addNewPlant)
+
 module.exports = router
 
 function getAllPlants({query}, res, next)  {
@@ -19,6 +21,45 @@ function getOnePlant({params: {uid}}, res, next)  {
     return powerPlantsService.getById(uid)
         .then( plant => res.json(plant))
         .catch( err => next(err))
+}
+
+function addNewPlant({body}, res, next){
+    const {
+        status,
+        plantType,
+        region,
+        district,
+        name,
+        ta
+    } = body
+
+    const capacityInMW = body.capacityInMW ?  Number(body.capacityInMW) : 0
+    const lat = Number(body.lat)
+    const lng = Number(body.lng)
+
+    const newPlant = {
+        properties: {
+            status,
+            plantType,
+            region,
+            district,
+            name,
+            ta,
+            capacityInMW
+        },
+        geometry: {
+            type: 'Point',
+            coordinates: {lat, lng}
+        },
+        geo: {
+            type: 'Point',
+            coordinates: [lng, lat]
+        }
+    }
+    
+    return powerPlantsService.addNew(newPlant)
+        .then(plant => res.json(plant))
+        .catch(err => next(err))
 }
 
 function getPlantTypes() {
@@ -66,3 +107,4 @@ async function getFilters(req, res, next) {
 
     res.json(filters)
 }
+

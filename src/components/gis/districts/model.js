@@ -28,16 +28,10 @@ const DistrictSchema = new Schema(
             lat: Number,
             lng: Number
         },
-        // distributionLines: [
-        //     { type: Schema.Types.ObjectId, ref: 'DistributionLines' }
-        // ], 
+        distributionLines: { count: Number }, 
         transformers: { count: Number },
-        // powerPlants: [
-        //     { type: Schema.Types.ObjectId, ref: 'PowerPlant'}
-        // ],
-        // powerSubStations: [
-        //     { type: Schema.Types.ObjectId, ref: 'SubStation' }
-        // ]
+        powerPlants: { count: Number },
+        powerSubStations: { count: Number }
         
     },
     {collection: 'district'}

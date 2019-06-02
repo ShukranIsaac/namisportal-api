@@ -21,7 +21,8 @@ module.exports = {
     },
     getById: async (id) => await PowerPlant.findById(id).lean(),
     getPlantTypes: async () => await PowerPlant.find({}).select({'properties.plantType': 1}).lean(),
-    getCapacities: async () => await PowerPlant.find({}).select({'properties.capacityInMW': 1}).lean()
+    getCapacities: async () => await PowerPlant.find({}).select({'properties.capacityInMW': 1}).lean(),
+    addNew: async(body) => await PowerPlant.create(body)
 }
 
 
