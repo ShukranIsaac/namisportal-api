@@ -1,6 +1,7 @@
 const mongooseStringQuery = require('mongoose-string-query')
 const Schema = require('mongoose').Schema
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
+const District = require('../districts/model')
 
 const SubStationSchema = new Schema(
     {
@@ -13,7 +14,6 @@ const SubStationSchema = new Schema(
             transmission: String,
             asset: String,
             name: String
-
         },
         geometry: {
             type: { type: Schema.Types.String},
@@ -21,9 +21,7 @@ const SubStationSchema = new Schema(
         },
         geo: {
             type: { type: Schema.Types.String},
-            coordinates: [
-                [Number, Number]
-            ]
+            coordinates: [Number, Number]
         }
     },
     {collection: 'sub_stations'}
@@ -31,5 +29,34 @@ const SubStationSchema = new Schema(
 
 SubStationSchema.index({ geo: "2dsphere" })
 SubStationSchema.plugin(mongooseStringQuery)
+
+
+SubStationSchema.post('save', async function(doc) {
+   
+    const district = await District.findOne({ 
+        location: { 
+            $geoIntersects: { 
+                $geometry: { 
+                    type: "Point", 
+                    coordinates: doc.geo.coordinates 
+                } 
+            } 
+        } 
+    })
+    const count = await mongoose.model('SubStation', SubStationSchema)
+                        .find()
+                        .where('geo')
+                        .within(district.location).count()
+    district.powerSubStations = {count}
+    district.save()
+});
+
+SubStationSchema.post('remove', async function(doc) {
+    
+    const district = await District.findOne({ location: { $geoIntersects: { $geometry: { type: "Point", coordinates: doc.geo.coordinates } } } })
+    const count = await mongoose.model('SubStation', SubStationSchema).find().where('geo').within(district.location).count()
+    district.powerSubStations = {count}
+    district.save()
+});
 
 module.exports = mongoose.model('SubStation', SubStationSchema)
