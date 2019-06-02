@@ -29,6 +29,23 @@ const PowerPlantSchema = new Schema(
 PowerPlantSchema.index({ geo: "2dsphere" })
 PowerPlantSchema.plugin(mongooseStringQuery)
 
+PowerPlantSchema.post('insertMany', async function(docs, next) {
+    const districts = await District.find({})
+    
+
+    districts.forEach( async (district) => {
+        const count = await mongoose.model(
+                    'PowerPLant', PowerPlantSchema
+                    )
+                    .find()
+                    .where('geo')
+                    .within(district.location).countDocuments()
+        district.powerPlants = {count}
+        district.save()
+    })
+    next()
+});
+
 
 PowerPlantSchema.post('save', async function(doc) {
     const district = await District.findOne({ 

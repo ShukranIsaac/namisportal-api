@@ -155,7 +155,7 @@ function mapPowerPlants(powerPlants){
 }
 
 function mapPowerPlantsToDistrict(powerPlants){
-    return PowerPlant.collection.insertMany(powerPlants, (err, {insertedIds}) => {
+    return PowerPlant.insertMany(powerPlants, async (err, {insertedIds}) => {
         if (err) throw new Error(err) 
     })
     // return districts.map((district) => {
