@@ -1,6 +1,7 @@
 const mongooseStringQuery = require('mongoose-string-query')
 const Schema = require('mongoose').Schema
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
+const District = require('../districts/model')
 
 const DistributionLinesSchema = new Schema(
     {
@@ -34,5 +35,20 @@ const DistributionLinesSchema = new Schema(
 
 DistributionLinesSchema.index({ lines: "2dsphere" })
 DistributionLinesSchema.plugin(mongooseStringQuery)
+
+DistributionLinesSchema.post('save', async function(doc) {
+    const district = await District.findOne({ location: { $geoIntersects: { $geometry: { type: "MultilineString", coordinates: doc.lines.coordinates } } } })
+    const count = await mongoose.model('DistributionLines', DistributionLinesSchema).find().where('lines').within(district.location).count()
+    district.distributionLines = {count}
+    district.save()
+});
+
+DistributionLinesSchema.post('remove', async function(doc) {
+    
+    const district = await District.findOne({ location: { $geoIntersects: { $geometry: { type: "MultilineString", coordinates: doc.lines.coordinates } } } })
+    const count = await mongoose.model('DistributionLines', DistributionLinesSchema).find().where('lines').within(district.location).count()
+    district.distributionLines = {count}
+    district.save()
+});
 
 module.exports = mongoose.model('DistributionLines', DistributionLinesSchema)
