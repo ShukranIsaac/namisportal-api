@@ -1,7 +1,7 @@
 const mongooseStringQuery = require('mongoose-string-query')
 const Schema = require('mongoose').Schema
 const mongoose = require('mongoose');
-
+const District = require('../districts/model')
 const MarepCenterSchema = new Schema(
     {
         properties: {
@@ -9,19 +9,24 @@ const MarepCenterSchema = new Schema(
         },
         geometry: {
             type: { type: Schema.Types.String},
-            coordinates: {lng: Number, lat: Number}
+            coordinates: {}
         },
         geo: {
             type: { type: Schema.Types.String},
-            coordinates: [
-                [Number, Number]
-            ]
+            coordinates: []
         }
     },
     {collection: 'marep_centres'}
 );
 
 MarepCenterSchema.index({ geo: "2dsphere" })
+MarepCenterSchema.post('save', async function(doc) {
+    
+    const district = await District.findOne({ location: { $geoIntersects: { $geometry: { type: "Point", coordinates: doc.geo.coordinates } } } })
+    const count = await mongoose.model('MarepCenter').find().where('geo').within(district.location).count()
+    district.marepCenters = {count}
+    district.save()
+});
 MarepCenterSchema.plugin(mongooseStringQuery)
 
-module.exports = mongoose.model('MarepCenter', MarepCenterSchema)
+module.exports = mongoose.model('MarepCenter', MarepCenterSchema)   

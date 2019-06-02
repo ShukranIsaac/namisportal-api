@@ -8,7 +8,7 @@ const DistrictSchema = new Schema(
         properties: {
             name: String
         },
-        marepCenters: { count: String },
+        marepCenters: { count: Number },
         polygons: [
             {
                 geometry: {
@@ -31,7 +31,7 @@ const DistrictSchema = new Schema(
         // distributionLines: [
         //     { type: Schema.Types.ObjectId, ref: 'DistributionLines' }
         // ], 
-        transformers: { count: String },
+        transformers: { count: Number },
         // powerPlants: [
         //     { type: Schema.Types.ObjectId, ref: 'PowerPlant'}
         // ],
@@ -42,6 +42,7 @@ const DistrictSchema = new Schema(
     },
     {collection: 'district'}
 );
+
 
 // DistrictSchema.index({ location: "2dsphere" })
 DistrictSchema.plugin(mongooseStringQuery)

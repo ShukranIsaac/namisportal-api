@@ -18,11 +18,24 @@ router.get('/:uid', (req, res) => {
         })
 })
 
-// router.get('/aggregates', (req, res) => {
-//     MarepCenter.aggregate()
-//     MarepCenter.count({}).then((centers => console.log(centers)))
-//         .catch(err => console.log(err))
-// })
+router.post('/', (req, res) => {
+    const {region, district, ta, lat, lng} = req.body
+    const newCenter = {
+        properties: {
+            region, district, ta
+        },
+        geometry: {
+            type: 'Point',
+            coordinates: {lat: Number(lat), lng: Number(lng)}
+        },
+        geo: {
+            type: 'Point',
+            coordinates: [Number(lng), Number(lat)]
+        }
+    }
+    MarepCenter.create(newCenter)
+        .then(center => res.json(center))
+})
 
 module.exports = router
 
