@@ -40,7 +40,7 @@ const District = require('../components/gis/districts/model')
 const Polygon = require('../components/gis/polygons/model')
 const Region = require('../components/gis/regions/model')
 
-//MarepCenter.collection.drop();
+//MarepCenter.drop();
 
 const districts = ['Chitipa', 'Karonga', 'Likoma', 'Mzimba', 'Nkhatabay', 'Rumphi', 'Dedza', 'Dowa', 'Kasungu', 'Lilongwe', 'Mchinji', 'Nkhotakota', 'Ntcheu', 'Ntchisi', 'Salima', 'Balaka', 'Blantyre', 'Chikwawa', 'Chiradzulu', 'Machinga', 'Mangochi', 'Mulanje', 'Mwanza', 'Neno', 'Nsanje', 'Phalombe', 'Thyolo', 'Zomba']
 const regionDistricts = [
@@ -72,8 +72,8 @@ const regionDistricts = [
 
 // mapDistrictsToRegions(regionDistricts)
 
-// const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
-// const districtDistLines =  mapLinesToDistrict(transformedDistLines)
+const transformedDistLines = transformDistributionLines(parsedDistributionLines.features)
+const districtDistLines =  mapLinesToDistrict(transformedDistLines)
 
 // const mappedCenters = mapCenters(marepCenters.features)
 // mapCentersToDistrict(districts, mappedCenters)
@@ -85,8 +85,8 @@ const regionDistricts = [
 // mapTransformersToDistrict(mappedTransformers)
 
 
-const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
-mapPowerPlantsToDistrict(mappedPowerPlants)
+// const mappedPowerPlants = mapPowerPlants(parsedPowerPlants.features)
+// mapPowerPlantsToDistrict(mappedPowerPlants)
 
 //substation stuffies
 function mapSubStations(substations){
@@ -118,7 +118,7 @@ function mapSubStations(substations){
 }
 
 function mapSubStationsToDistrict(substations){
-    return SubStation.collection.insertMany(substations, (err, {insertedIds}) => {
+    return SubStation.insertMany(substations, (err, {insertedIds}) => {
         if (err) throw new Error(err)
     })
 }
@@ -162,7 +162,7 @@ function mapPowerPlantsToDistrict(powerPlants){
     //     const districtPowerPlants = powerPlants.filter((powerPlant) => powerPlant.properties.district === district)
         
     //     if (districtPowerPlants.length > 0){
-    //         PowerPlant.collection.insertMany(districtPowerPlants, (err, {insertedIds}) => {
+    //         PowerPlant.insertMany(districtPowerPlants, (err, {insertedIds}) => {
     //             if (err) throw new Error(err)
     //             const values = Object.values(insertedIds)
     
@@ -223,7 +223,7 @@ function mapTransformers(transformers){
 }
 
 function mapTransformersToDistrict(transformers){
-    return Transformer.collection.insertMany(transformers, (err, {insertedIds}) => {
+    return Transformer.insertMany(transformers, (err, {insertedIds}) => {
         if (err) throw new Error(err)
     })
 }
@@ -274,7 +274,7 @@ function mapCentersToDistrict(districts, centers){
         const districtCenters = centers.filter(({properties}) => properties.district == district )
 
         if (districtCenters.length > 0){
-            MarepCenter.collection.insertMany(districtCenters, (err, {insertedIds}) => {
+            MarepCenter.insertMany(districtCenters, (err, {insertedIds}) => {
                 if (err) throw new Error(err)
     
                     // const values = Object.values(insertedIds)
@@ -519,7 +519,7 @@ function regionPolygonsToMongo(polygons){
 
         
         
-        // return Polygon.collection.insertMany(regionPolygons, (err, {insertedIds}) => {
+        // return Polygon.insertMany(regionPolygons, (err, {insertedIds}) => {
         //         if (err) throw new Error(err)
         //         const values = Object.values(insertedIds)
                 
@@ -545,8 +545,19 @@ function regionPolygonsToMongo(polygons){
  */
 
 function mapLinesToDistrict(lines){
-    return DistributionLines.collection.insertMany(lines, (err, docs) => {
-        if (err) throw new Error(err)
+    return DistributionLines.insertMany(lines, async (err, docs) => {
+        if (err) console.error(err)
+
+        const districts = await District.find({})
+        
+        districts.forEach( async (district) => {
+            const count = await DistributionLines
+                        .find()
+                        .where('lines')
+                        .within(district.location).countDocuments()
+            district.distributionLines = {count}
+            district.save()
+        })
     })
 }
 

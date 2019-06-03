@@ -20,14 +20,12 @@ const DistributionLinesSchema = new Schema(
         geometry: {
             type: { type: Schema.Types.String},
             coordinates: [
-                [{lat: { type: Schema.Types.Number}, lng: { type: Schema.Types.Number}}]
+                [{}]
             ]
         },
         lines: {
             type: { type: Schema.Types.String},
-            coordinates: [
-                [{ type: Schema.Types.Number}, { type: Schema.Types.Number}]
-            ]
+            coordinates: []
         },
     },
     {collection: 'distribution_lines'}
@@ -38,15 +36,29 @@ DistributionLinesSchema.plugin(mongooseStringQuery)
 
 DistributionLinesSchema.post('save', async function(doc) {
     const district = await District.findOne({ location: { $geoIntersects: { $geometry: { type: "MultilineString", coordinates: doc.lines.coordinates } } } })
-    const count = await mongoose.model('DistributionLines', DistributionLinesSchema).find().where('lines').within(district.location).count()
+    const count = await mongoose.model('DistributionLines', DistributionLinesSchema).find().where('lines').within(district.location).countDocuments()
     district.distributionLines = {count}
     district.save()
+});
+
+DistributionLinesSchema.post('insertMany', async function(docs, next) {
+    const districts = await District.find({})
+    
+    districts.forEach( async (district) => {
+        const count = await mongoose.model('DistributionLines', DistributionLinesSchema)
+                    .find()
+                    .where('lines')
+                    .within(district.location).countDocuments()
+        district.distributionLines = {count}
+        district.save()
+    })
+    next()
 });
 
 DistributionLinesSchema.post('remove', async function(doc) {
     
     const district = await District.findOne({ location: { $geoIntersects: { $geometry: { type: "MultilineString", coordinates: doc.lines.coordinates } } } })
-    const count = await mongoose.model('DistributionLines', DistributionLinesSchema).find().where('lines').within(district.location).count()
+    const count = await mongoose.model('DistributionLines', DistributionLinesSchema).find().where('lines').within(district.location).countDocuments()
     district.distributionLines = {count}
     district.save()
 });

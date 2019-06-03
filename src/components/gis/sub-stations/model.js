@@ -46,15 +46,29 @@ SubStationSchema.post('save', async function(doc) {
     const count = await mongoose.model('SubStation', SubStationSchema)
                         .find()
                         .where('geo')
-                        .within(district.location).count()
+                        .within(district.location).countDocuments()
     district.powerSubStations = {count}
     district.save()
+});
+
+SubStationSchema.post('insertMany', async function(docs, next) {
+    const districts = await District.find({})
+    
+    districts.forEach( async (district) => {
+        const count = await mongoose.model('SubStation', SubStationSchema)
+                    .find()
+                    .where('geo')
+                    .within(district.location).countDocuments()
+        district.powerSubStations = {count}
+        district.save()
+    })
+    next()
 });
 
 SubStationSchema.post('remove', async function(doc) {
     
     const district = await District.findOne({ location: { $geoIntersects: { $geometry: { type: "Point", coordinates: doc.geo.coordinates } } } })
-    const count = await mongoose.model('SubStation', SubStationSchema).find().where('geo').within(district.location).count()
+    const count = await mongoose.model('SubStation', SubStationSchema).find().where('geo').within(district.location).countDocuments()
     district.powerSubStations = {count}
     district.save()
 });

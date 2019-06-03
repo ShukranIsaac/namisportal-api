@@ -9,7 +9,7 @@ const router = express.Router()
 router.get('/', (req, res) => {
     return Region.find({})
             .populate('districts', 'properties')
-            .select('-location')
+            .select('-location -polygons')
             .lean()
             .then(regions => res.json(regions))
             .catch((err) =>  console.error(err))
