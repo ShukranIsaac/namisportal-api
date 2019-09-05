@@ -57,8 +57,8 @@ async function create(userParam) {
 }
 
 async function update(id, userParam) {
-    
-    const user = await User.findById(id);
+    let payloadHasRoles = false
+    let user = await User.findById(id);
     // validate
     if (!user) throw 'User not found';
     if (user.username !== userParam.username && await User.findOne({ username: userParam.username })) {
@@ -69,13 +69,19 @@ async function update(id, userParam) {
     if (userParam.password) {
         userParam.hash = bcrypt.hashSync(userParam.password, 10);
     }
+    let newRoles = {}
+    if (userParam.roles){
+        payloadHasRoles = true
+        newRoles = Object.assign(user.roles, userParam.roles)
+    }
 
+    const {roles, ...minusRoles} = userParam
     // copy userParam properties to user
-    Object.assign(user, userParam);
-
+    Object.assign(user, minusRoles, payloadHasRoles ? {roles: newRoles} : {})
+    
     await user.save()
     const { hash, ...userWithoutHash } = user.toObject();
-    return {userWithoutHash}
+    return {user: userWithoutHash}
 }
 
 async function _delete(id) {

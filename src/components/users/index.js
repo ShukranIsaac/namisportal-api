@@ -46,7 +46,7 @@ function getById(req, res, next) {
 }
 
 function update(req, res, next) { 
-    if(req.session.user._uid !== req.params.id || !req.session.user.roles.admin){
+    if(req.session.user._id !== req.params.id || !req.session.user.roles.admin){
         const error = { message: 'Only an adminstrator or the actual user themselves can update user details'}
         next(new Error(error))
     }else{

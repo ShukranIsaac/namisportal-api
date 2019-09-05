@@ -69,7 +69,7 @@ app.use('/users', users)
 
 //handle middleware
 app.use((error, req, res, next) => {
-  
+  console.log(error)
   error = error.message ? error : {error}
   return res.status(422).json(error)
 })
