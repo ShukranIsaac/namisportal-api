@@ -13,6 +13,7 @@ router.post('/', addContactInfo)
 router.post('/message', sendMessage)
 router.patch('/:uid', updateContactInfo)
 router.delete('/:uid', deleteContactInfo)
+router.get('/verify', verifyMailConfig)
 
 module.exports = router
 
@@ -78,6 +79,15 @@ function main({fullName, email, subject, message}){
                 pass: "@M1nigrids"
             }
         }));
+
+        let transporter3 = nodemailer.createTransport(smtpTransport({
+            host: '0.0.0.0',
+            port: 587,
+            auth: {
+                user: "test@0.0.0.0",
+                pass: "1234"
+            }
+        }));
           
         // setup email data with unicode symbols
         let mailOptions = {
@@ -89,7 +99,7 @@ function main({fullName, email, subject, message}){
         };
       
         // send mail with defined transport object
-        let info = await transporter2.sendMail(mailOptions)
+        let info = await transporter3.sendMail(mailOptions)
       
         console.log("Message sent: %s", info.messageId);
         // Preview only available when sending through an Ethereal account
@@ -100,3 +110,47 @@ function main({fullName, email, subject, message}){
   
 }
 
+async function verifyMailConfig(req, res, next){
+    console.log('here')
+    let transporter = nodemailer.createTransport(smtpTransport({
+        host: 'mail',
+        port: 465,
+        secure: true,
+        auth: {
+            user: "test@0.0.0.0",
+            pass: "[1234]"
+        },
+        tls: { rejectUnauthorized: false },
+        debug: true,
+    }));
+    // verify connection configuration
+    // transporter.verify(function(error, success) {
+    //     if (error) {
+    //       console.log(error);
+    //     } else {
+    //       console.log("Server is ready to take our messages");
+    //     }
+    //   });
+
+    // setup email data with unicode symbols
+    let mailOptions = {
+      from: `"Akulinandia Sembereka: Contact Page" <akulinandia@gmail.com>`, // sender address
+      to: "psemberekajr@gmail.com", // list of receivers
+      subject: 'Sup Mofo', // Subject line
+      text: "message", // plain text body
+      html: `<b>message</b>` // html body
+    };
+
+    try {
+        
+        // send mail with defined transport object
+        let info = await transporter.sendMail(mailOptions)
+      
+        console.log("Message sent: %s", info.messageId);
+        // Preview only available when sending through an Ethereal account
+        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+    } catch (error) {
+        console.log(error)
+    }
+  
+}

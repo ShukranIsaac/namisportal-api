@@ -11,6 +11,7 @@ router.get('/', jwtm, getAll);
 router.get('/current',jwtm, getCurrent);
 router.get('/:id', jwtm, getById);
 router.put('/:id', jwtm, update);
+router.patch('/:id', jwtm, update);
 router.delete('/:id', jwtm, _delete);
 
 module.exports = router;
@@ -46,14 +47,25 @@ function getById(req, res, next) {
 }
 
 function update(req, res, next) { 
-    if(req.session.user._id !== req.params.id || !req.session.user.roles.admin){
-        const error = { message: 'Only an adminstrator or the actual user themselves can update user details'}
-        next(new Error(error))
-    }else{
-        userService.update(req.params.id, req.body)
+    
+    userService.update(req.params.id, req.body)
         .then((user) => res.json(user))
         .catch(err => next(err))
-    }
+
+    // if(req.session.user._id === req.params.id){
+    //     userService.update(req.params.id, req.body)
+    //     .then((user) => res.json(user))
+    //     .catch(err => next(err))
+    // }
+    // else if(req.session.user.roles.admin){
+    //     userService.update(req.params.id, req.body)
+    //     .then((user) => res.json(user))
+    //     .catch(err => next(err))
+    // }
+    // else{
+    //     const error = { message: 'Only an adminstrator or the actual user themselves can update user details'}
+    //     next(new Error(error))
+    // }
 }
 
 function _delete(req, res, next) {

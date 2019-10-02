@@ -13,6 +13,7 @@ router.use('/upload', jwtm,  upload)
 router.patch('/:uid/', jwtm, updateFile)
 router.get('/download/:uid', downloadFile)
 router.use('/images', express.static(require('path').join(__dirname, '../../../docs')))
+router.use('/docs', express.static(require('path').join(__dirname, '../../../docs')))
 
 module.exports = router
 

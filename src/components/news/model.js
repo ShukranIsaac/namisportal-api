@@ -9,7 +9,8 @@ const NewsSchema = new Schema(
         images: [
             { type: Schema.Types.ObjectId, ref: 'File' }
         ],
-        createdDate: { type: Date, default: Date.now }
+        createdDate: { type: Date, default: Date.now },
+        isPublished: {type: Boolean, default: false}
     },
     {collection: 'news'}
 );
