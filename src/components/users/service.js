@@ -40,6 +40,7 @@ async function getByUsername(username) {
 }
 
 async function create(userParam) {
+
     // validate
     if (await User.findOne({ username: userParam.username })) {
         throw `The username ${userParam.username} is already taken'`;
@@ -52,8 +53,14 @@ async function create(userParam) {
         user.hash = bcrypt.hashSync(userParam.password, 10);
     }
 
-    // save user
-    return await user.save();
+    try {
+       user.save();
+       const { hash, ...userWithoutHash } = user.toObject();
+       return Promise.resolve(userWithoutHash)
+        
+    } catch (error) {
+        return Promise.reject(error)
+    }
 }
 
 async function update(id, userParam) {

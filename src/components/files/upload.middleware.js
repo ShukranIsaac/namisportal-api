@@ -64,7 +64,7 @@ function uploadAndMap(req, res){
                 .then(async category => {
                     const file = await uploadTheFile(req, res)
 
-                    fileService.createOne({ name, path, size })
+                    fileService.createOne(file)
                         .then( ({_id}) => {
                             category.documents.push({_id})
                             resolve(category.save())

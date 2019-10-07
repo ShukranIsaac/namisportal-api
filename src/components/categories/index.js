@@ -10,6 +10,7 @@ router.get('/:uid', getOneCategory)
 router.get('/:uid/documents', getDocuments)
 router.get('/:uid/sub-categories', getSubCategories)
 router.get('/:uid/main-sub-category', getMainSubCategory)
+router.get('/:uid/by-child', getByChild)
 
 router.post('/', jwtm, addCategory)
 router.use('/:uid/files', jwtm, fileUploadMiddleware)
@@ -19,6 +20,12 @@ router.patch('/:uid/', jwtm, updateCategory)
 router.delete('/:uid/', jwtm, deleteCategory)
 
 module.exports = router
+
+function getByChild(req, res, next){
+    return categoriesService.searchByChild()
+        .then(found => console.log(found))
+        .catch(error => console.error(error))
+}
 
 function getAllCategories({query: {name}}, res, next)  {
     return categoriesService.getAll(name)
@@ -132,6 +139,7 @@ function addSubCategory({params: {uid}, body}, res, next){
                     .catch( err => next(err))
                 })
         })
+        .catch( err => next(err))
     }
     
 }
