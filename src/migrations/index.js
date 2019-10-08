@@ -183,7 +183,11 @@ function mapPowerPlantsToDistrict(powerPlants){
 function mapTransformers(transformers){
     return transformers.map((transformer) => {
 
-        const { geometry: { type , coordinates}, properties: {region, district, ta} } = transformer
+        const { 
+            geometry: { type , coordinates}, 
+            properties: {region, district, ta}
+        } = transformer
+
         const newCoordinate =  mapCoordinates(coordinates)
         
         const transformerObj = {
@@ -552,9 +556,10 @@ function mapLinesToDistrict(lines){
         
         districts.forEach( async (district) => {
             const count = await DistributionLines
-                        .find()
-                        .where('lines')
-                        .within(district.location).countDocuments()
+                .find()
+                .where('lines')
+                .within(district.location).countDocuments()
+
             district.distributionLines = {count}
             district.save()
         })

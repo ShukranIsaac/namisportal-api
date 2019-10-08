@@ -9,8 +9,8 @@ const upload = require('./upload.middleware')
 router.get('/', getAllFiles)
 router.get('/:uid', getOneFile)
 
+router.patch('/:uid', jwtm, upload)
 router.use('/upload', jwtm,  upload)
-router.patch('/:uid/', jwtm, updateFile)
 router.get('/download/:uid', downloadFile)
 router.use('/images', express.static(require('path').join(__dirname, '../../../docs')))
 router.use('/docs', express.static(require('path').join(__dirname, '../../../docs')))
@@ -33,19 +33,4 @@ function downloadFile({params: {uid}}, res, next)  {
     return filesService.getByIdMongooseUse(uid)
         .then( ({path, name}) => res.download( path, `${name}.${nodePath.extname(path)}`, err => next(err)))
         .catch( err => next(err))
-}
-
-function updateFile({params: {uid}, body}, res, next)  {
-    return categoriesService.getByIdMongooseUse(uid)
-        .then( file => {
-            doUpdate(file, body)
-            .then( updatedFile => res.json(updatedFile))
-            .catch( err => next(err))
-        })
-        .catch( err => next(err))
-}
-
-async function doUpdate(document, props){
-    document.set(props)
-    return await document.save()
 }

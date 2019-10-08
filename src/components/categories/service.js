@@ -39,7 +39,16 @@ module.exports = {
         } catch (error) {
             return Promise.reject(error)
         }
-    } ,
+    },
+    removeDocument: async (id, docId) => {
+        try {
+            const category = await Category.findById(id)
+            category.documents.pull(docId)
+            return await category.save()
+        } catch (error) {
+            return Promise.reject(error)
+        }
+    },
     getSubCategories: async (id) => (
         await Category
                 .findById(id)

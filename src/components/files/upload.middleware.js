@@ -83,6 +83,24 @@ function uploadAndMap(req, res){
     })
 }
 
+async function updateFile(req, res){
+    const file = await uploadTheFile(req, res)
+
+    const {name, ...fileWOname} = file
+
+    try {
+        const document = await fileService.getByIdMongooseUse(req.params.uid)
+
+        return fileService.update(document, fileWOname)
+            .then(updatedFile => Promise.resolve(updatedFile))
+            .catch(error => Promise.reject(error))
+
+    } catch (error) {
+        return Promise.reject(error)
+    }
+  
+}
+
 function uploadTheFile(req, res){
     return new Promise((resolve, reject) => {
         const upload = multer({ storage: storage}).single('file');
@@ -124,8 +142,24 @@ function justUpload(req, res){
     
 }
 
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
     const { uid } = req.params
+    const {method} = req
+
+    //update file
+    if (method === "PATCH"){
+        try {
+            const file = await fileService.getById(uid)
+
+            if (file){
+                return updateFile(req, res)
+                    .then(updatedFile => res.json(updatedFile))
+                    .catch(error => next(error))
+            }
+        } catch (error) {
+            return next(error)
+        }
+    }
 
     if (uid) {
         uploadAndMap(req, res).then(upload => res.json(upload))

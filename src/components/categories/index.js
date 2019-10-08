@@ -3,6 +3,7 @@ const router = express.Router()
 const jwtm = require('../../middlewares/jwt')
 
 const categoriesService = require('./service')
+const fileServise = require('../files/service')
 const fileUploadMiddleware = require('../files/upload.middleware')
 
 router.get('/', getAllCategories)
@@ -19,7 +20,41 @@ router.post('/:uid/main-sub-category', jwtm, addMainSubcategory)
 router.patch('/:uid/', jwtm, updateCategory)
 router.delete('/:uid/', jwtm, deleteCategory)
 
+router.post('/:uid/documents', addDocument)
+router.delete('/:uid/documents/:docId', removeDocument)
+
 module.exports = router
+
+async function removeDocument(req, res, next){
+    const {params: {uid, docId}} = req
+    try {
+        const file = await fileServise.getById(docId)
+
+        if(file){
+            return categoriesService.removeDocument(uid, docId)
+                .then(categoryWithRemovedDoc => res.json(categoryWithRemovedDoc))
+                .catch(error => next(error))
+        }
+    } catch (error) {
+        return next(error)
+    }
+}
+
+async function addDocument(req, res, next){
+    const {params: {uid}, body: {docId}} = req
+    try {
+        const file = await fileServise.getById(docId)
+
+        if(file){
+            return categoriesService.addDocument(uid, docId)
+                .then(categoryWithNewDoc => res.json(categoryWithNewDoc))
+                .catch(error => next(error))
+        }
+    } catch (error) {
+        return next(error)
+    }
+}
+
 
 function getByChild(req, res, next){
     return categoriesService.searchByChild()
@@ -76,7 +111,7 @@ function updateCategory({params: {uid}, body}, res, next)  {
 function addCategory({body}, res, next){
     return categoriesService.createOne(body)
         .then( newCategory => res.json(newCategory) )
-        .catch( err => {console.log(err);return next(err)})
+        .catch( err => next(err))
 }
 
 function addFile({params: uid}, res, next){

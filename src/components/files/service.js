@@ -6,7 +6,12 @@ module.exports = {
     getCategory: async (id) => await File.findById(id).populate('categories').lean(),
     getByIdMongooseUse: async (id) => await File.findById(id),
     createOne: async (newFile) => await File.create(newFile),
-    delete: async (id) => await File.findByIdAndDelete(id).lean()                                                                                             
+    delete: async (id) => await File.findByIdAndDelete(id).lean(),
+    update: async (document, props) => {
+        console.log(document)
+        document.set(props)
+        return await document.save()
+    }                                                                                      
 }
 
 
