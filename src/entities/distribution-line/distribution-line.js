@@ -25,7 +25,7 @@ const buildMakeDistribustionLine = ({mapPolyLinesCoords}) => {
                     district, 
                     length, 
                     region,
-                    primary: feature.properties['Primary 4'],
+                    primary: properties['Primary 4'],
                     feeder: Feeder2,
                     status: Status3,
                     conductor: Conducto1,

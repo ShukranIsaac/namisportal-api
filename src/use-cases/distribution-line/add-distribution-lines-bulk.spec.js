@@ -1,3 +1,3 @@
 describe('add distriution lines bulk', () => {
-    it
+    it.todo('should add distribution lines bulk')
 });
