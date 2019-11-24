@@ -80,14 +80,14 @@ function main({fullName, email, subject, message}){
             }
         }));
 
-        let transporter3 = nodemailer.createTransport(smtpTransport({
-            host: '0.0.0.0',
-            port: 587,
-            auth: {
-                user: "test@0.0.0.0",
-                pass: "1234"
-            }
-        }));
+        // let transporter3 = nodemailer.createTransport(smtpTransport({
+        //     host: '0.0.0.0',
+        //     port: 587,
+        //     auth: {
+        //         user: "test@0.0.0.0",
+        //         pass: "1234"
+        //     }
+        // }));
           
         // setup email data with unicode symbols
         let mailOptions = {
@@ -99,7 +99,7 @@ function main({fullName, email, subject, message}){
         };
       
         // send mail with defined transport object
-        let info = await transporter3.sendMail(mailOptions)
+        let info = await transporter2.sendMail(mailOptions)
       
         console.log("Message sent: %s", info.messageId);
         // Preview only available when sending through an Ethereal account

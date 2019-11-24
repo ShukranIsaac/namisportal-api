@@ -33,7 +33,7 @@ function addNewPlant({body}, res, next){
         ta
     } = body
 
-    const capacityInMW = body.capacityInMW ?  Number(body.capacityInMW) : 0
+    const capacityInMW = body.capacityInMW ? Number(body.capacityInMW) : 0
     const lat = Number(body.lat)
     const lng = Number(body.lng)
 
@@ -66,45 +66,49 @@ function getPlantTypes() {
     return new Promise((resolve, reject) => {
         return powerPlantsService.getPlantTypes()
             .then( plantTypes => {
-                const typesArray = plantTypes.map(plantType => {
+                const typesArray = plantTypes.map((plantType) => {
                     return plantType.properties.plantType
                 })
-                var uniq = [ ...new Set(typesArray) ];
-                resolve(uniq)
-
+                const uniquePlantTypes = [ ...new Set(typesArray) ];
+                resolve(uniquePlantTypes)
             })
+            .catch(error => reject(error))
     })
 }
 
 function getCapacities() {
-
     return new Promise((resolve, reject) => {
         return powerPlantsService.getCapacities()
         .then( capacities => {
-            const typesArray = capacities.map(({properties: {capacityInMW}}) => {
-                if (capacityInMW > 50)
-                    return 'above 50MW'
-                else{
-                    return 'below 50MW'
+            const typesArray = capacities.map(
+                ({properties: {capacityInMW}}) => {
+                    if (capacityInMW > 50)
+                        return 'above 50MW'
+                    else{
+                        return 'below 50MW'
+                    }
                 }
-            })
-            var uniq = [ ...new Set(typesArray) ];
-            resolve(uniq)
-
+            )
+            const uniqueCapacityTypes = [ ...new Set(typesArray) ]
+            resolve(uniqueCapacityTypes)
         })
+        .catch(error => reject(error))
     })
-    
 }
 
 async function getFilters(req, res, next) {
-    const capacities = await getCapacities()
-    const plantTypes = await getPlantTypes()
-
-    const filters = [
-        {capacities},
-        {plantTypes}
-    ]
-
-    res.json(filters)
+    try {
+        const capacities = await getCapacities()
+        const plantTypes = await getPlantTypes()
+    
+        const filters = [
+            {capacities},
+            {plantTypes}
+        ]
+    
+        res.json(filters)
+    } catch (error) {
+        next(error)
+    }
 }
 

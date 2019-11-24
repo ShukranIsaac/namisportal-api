@@ -84,20 +84,38 @@ function uploadAndMap(req, res){
 }
 
 async function updateFile(req, res){
-    const file = await uploadTheFile(req, res)
+    if (req.file){
+        const file = await uploadTheFile(req, res)
+        const {name, ...fileWOname} = file
 
-    const {name, ...fileWOname} = file
+        try {
+            const document = await fileService.getByIdMongooseUse(req.params.uid)
+    
+            return fileService.update(document, fileWOname)
+                .then(updatedFile => Promise.resolve(updatedFile))
+                .catch(error => Promise.reject(error))
+    
+        } catch (error) {
+            return Promise.reject(error)
+        }
 
-    try {
-        const document = await fileService.getByIdMongooseUse(req.params.uid)
-
-        return fileService.update(document, fileWOname)
-            .then(updatedFile => Promise.resolve(updatedFile))
-            .catch(error => Promise.reject(error))
-
-    } catch (error) {
-        return Promise.reject(error)
     }
+
+    else{
+        
+        try {
+            const document = await fileService.getByIdMongooseUse(req.params.uid)
+    
+            return fileService.update(document, req.body)
+                .then(updatedFile => Promise.resolve(updatedFile))
+                .catch(error => Promise.reject(error))
+    
+        } catch (error) {
+            return Promise.reject(error)
+        }
+
+    }
+
   
 }
 
@@ -117,9 +135,9 @@ function uploadTheFile(req, res){
                 }
                 else{
                     const { path, size, filename } = req.file
-                    const { name } = req.body
+                    const { name, description } = req.body
     
-                    const file = { name, path, size, filename }
+                    const file = { name, path, size, filename, description}
                     
                     resolve(file)
                 }
