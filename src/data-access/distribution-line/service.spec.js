@@ -1,8 +1,6 @@
-const fs = require('fs')
 const db = require('./index')
 const makeDistributionLine = require('../../entities/distribution-line')
-const lines = fs.readFileSync(__dirname+'/distribution_lines.geojson')
-const parsedLines = JSON.parse(lines)
+const { parsedLines } = require('../../../__tests__/fixtures/gis_features')
 
 describe('distribution lines service', () => {
     it('should add one line', async () => {
