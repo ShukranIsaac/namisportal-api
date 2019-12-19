@@ -1,10 +1,13 @@
 const fs = require('fs');
+const fstream = require('fstream')
 const path = require('path');
 const multer = require('multer');
 const mkdirp = require('mkdirp');
 const fileService = require('./service');
 const categoriesService = require('../categories/service')
 const stakeholdersServise = require('../stakeholders/service')
+const unzip = require('unzip')
+const zlib = require('zlib');
 
 
 const MAGIC_NUMBERS = {
@@ -12,9 +15,9 @@ const MAGIC_NUMBERS = {
     jpg1: 'ffd8ffe1',
     png: '89504e47',
     gif: '47494638',
-    pdf: '25504446'
+    pdf: '25504446',
+    zip: '504b0304'
 }
-
 
 const destinationDirectory = 'docs/'
 const storage = multer.diskStorage({
@@ -35,7 +38,7 @@ const storage = multer.diskStorage({
 function checkMagicNumbers(magic) {
     if (magic == MAGIC_NUMBERS.jpg || magic == MAGIC_NUMBERS.jpg1 || 
         magic == MAGIC_NUMBERS.png || magic == MAGIC_NUMBERS.gif || 
-        magic == MAGIC_NUMBERS.pdf) 
+        magic == MAGIC_NUMBERS.pdf || magic == MAGIC_NUMBERS.zip) 
         return true
 }
 
@@ -129,15 +132,24 @@ function uploadTheFile(req, res){
                 }
 
                 const bitmap = fs.readFileSync(destinationDirectory + req.file.filename).toString('hex', 0, 4);
+                console.log(bitmap)
                 if (!checkMagicNumbers(bitmap)) {
                     fs.unlinkSync(destinationDirectory + req.file.filename);
                     reject(new Error('File not valid'))
                 }
                 else{
                     const { path, size, filename } = req.file
-                    const { name, description } = req.body
+
+                    let file = {}
+                    if (req.body){
+                        const { name, description } = req.body
+                        
+                        file = { name, path, size, filename, description}
+                    }
     
-                    const file = { name, path, size, filename, description}
+                    else{
+                        file = { path, size, filename}
+                    }
                     
                     resolve(file)
                 }
@@ -158,6 +170,47 @@ function justUpload(req, res){
         
     })
     
+}
+
+async function readZip({file}){
+
+    return new Promise((resolve, reject) => {
+
+        const readStream = fs.createReadStream(file.path)
+    
+        readStream.pipe(unzip.Parse())
+            .on('entry', function (entry) {
+                const fileExtention = path.extname(entry.path)
+                entry.autodrain()
+                resolve({fileName: entry.path, type: entry.type, size: entry.size})
+            })
+
+        readStream.on('error', (err) => reject(err))
+    })
+}
+
+async function unzipFile ({file, fileName}){
+    const unzipp = zlib.createUnzip();
+    const readStream = fs.createReadStream(file.path)
+    const out = fs.createWriteStream(fileName)
+
+    readStream
+        .pipe(unzipp)
+        // .pipe(fstream.Writer('docs'))
+        .pipe(out)
+
+    return readStream
+}
+
+function readExtracted({fileName}){
+    try {
+        const lines = fs.readFileSync(`${__dirname}/../../../docs/${fileName}`)
+        const parsedLines = JSON.parse(lines)
+        return Promise.resolve(parsedLines)
+        
+    } catch (error) {
+        return Promise.reject(error)
+    }
 }
 
 module.exports = async (req, res, next) => {
@@ -184,7 +237,48 @@ module.exports = async (req, res, next) => {
         .catch( err => next(err))
     }
     else{
-        justUpload(req, res).then(upload => res.json(upload))
-            .catch( err => next(err))
+        const url = req.baseUrl.split('/')[1]
+
+
+        if (url === 'files'){
+            justUpload(req, res)
+                .then(upload => res.json(upload))
+                .catch( err => next(err))
+        }
+
+        if(url === 'distribution-lines'){
+
+            try {
+                const file = await uploadTheFile(req, res)
+
+                const {fileName} = await readZip({file})
+
+                console.log(path.extname(fileName) === '.json')
+
+                if (path.extname(fileName) === '.geojson' || path.extname(fileName) === '.json'){
+                    const isclosed = await unzipFile({file, fileName})
+                    
+                    isclosed.on('out', async () => {
+                        console.log(path.extname(fileName) === '.json')
+                        console.log('end')
+                        try {
+                            const extracted = await readExtracted({fileName})
+                            console.log(extracted, 'hello')
+                            
+                        } catch (error) {
+                            console.log(error)
+                        }
+                    })
+                    
+                }
+
+                
+            } catch (error) {
+                console.log(error)
+                next(error)
+            }
+
+
+        }
     }
 }

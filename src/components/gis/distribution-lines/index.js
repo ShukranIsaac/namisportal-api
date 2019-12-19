@@ -2,11 +2,12 @@ const express = require('express')
 const router = express.Router()
 
 const distributionLinesService = require('./service')
+const upload = require('../../files/upload.middleware')
 
 router.get('/', getAllLines)
 router.get('/:uid', getOneLine)
 
-router.post('/', addNewLines)
+router.post('/upload', upload)
 
 module.exports = router
 
