@@ -33,8 +33,13 @@ Proceed with instruction below if docker is not installed
     sudo chmod +x /usr/local/bin/docker-compose
 ```
 
-## Compress Project Image
+## Build Project Image
 
+```
+    docker build -t marep-backend .
+```
+
+## Compress Project Image
 ```
     docker save marep-backend | gzip > marep-backend.tar.gz
 ```
