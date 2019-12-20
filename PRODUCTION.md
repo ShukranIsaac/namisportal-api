@@ -4,6 +4,7 @@
     git clone https://<username>@bitbucket.org/minigrids/api.git
 
     cd api
+    
 ```
 
 ## Setup/Install Docker (Only to be run when necessary)
@@ -32,7 +33,13 @@ Proceed with instruction below if docker is not installed
     sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose
 ```
-
+## 
+```
+    rm package-lock.json
+    rm -r node_modules
+    
+    npm install
+```
 ## Build Project Image
 
 ```
