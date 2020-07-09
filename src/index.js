@@ -19,13 +19,9 @@ const users = require('./components/users')
 const contacts = require('./components/contacts')
 const regions = require('./components/gis/regions')
 const categories = require('./components/categories')
-const powerPlants = require('./components/gis/power-plants')
-const subStations = require('./components/gis/sub-stations')
 const transformers = require('./components/gis/transformers')
-const marepCenters = require('./components/gis/marep-centers')
 const districts = require('./components/gis/districts/index')
 const stakeHolders = require('./components/stakeholders/index')
-const distributionLines = require('./components/gis/distribution-lines')
 
 //const routes = require('./routes')
 const db = mongoose.connection;
@@ -49,12 +45,8 @@ app.use(cors())
 
 //app.use(routes)
 app.use(helmet())
-app.use('/distribution-lines', distributionLines)
-app.use('/power-plants', powerPlants)
-app.use('/marep-centers', marepCenters)
 app.use('/stakeholders', stakeHolders)
 app.use('/transformers', transformers)
-app.use('/sub-stations', subStations)
 app.use('/categories', categories)
 app.use('/districts', districts)
 app.use('/regions', regions)
@@ -63,8 +55,6 @@ app.use('/files', files)
 app.use('/news', news)
 
  // use JWT auth to secure the api
-
-
 app.use('/users', users)
 
 //handle middleware
@@ -74,10 +64,9 @@ app.use((error, req, res, next) => {
 })
 
 db.on('error', console.error.bind(console, 'connection error:'))
-db.once('open', () =>  console.info('connekitedi'));
+db.once('open', () =>  console.info('MongoDB successfully connected!'));
 
-
-const PORT = process.env.PORT || '3300'
+const PORT = process.env.PORT || '8083'
 
 app.get('/', function (req, res) {  
      res.json({
@@ -86,9 +75,11 @@ app.get('/', function (req, res) {
 })
 
 app.listen(PORT, () => {
-  console.log(`server up at ${PORT}`) 
-
-  mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true })
+  console.log(`http://127.0.0.1:${PORT}`) 
+  mongoose.connect("mongodb://localhost/admin", { 
+    useNewUrlParser: true, 
+    useUnifiedTopology: true 
+  })
 })
 
 module.exports = app
