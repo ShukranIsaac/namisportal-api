@@ -44,7 +44,10 @@ function updateContactInfo({params: {uid}, body}, res, next)  {
 function addContactInfo({body}, res, next){
     return contactService.createOne(body)
         .then( newCategory => res.json(newCategory) )
-        .catch( err => next(err))
+        .catch( err => {
+            console.log(err)
+            next(err)
+        })
 }
 
 async function doUpdate(document, props){

@@ -4,10 +4,10 @@ const mongoose = require('mongoose');
 
 const ContactSchema = new Schema(
     {
-        email: String,
-        telephone: String,
-        website: String,
-        address: String
+        email: { type: Array, default: [] },
+        telephone: { type: Array, default: [] },
+        website: { type: String, default: null },
+        address: { type: Array, default: [] }
     },
     {collection: 'contact'}
 );

@@ -1,13 +1,14 @@
 
 
 const jwt = require('jsonwebtoken')
-const secret = process.env.JWT_SECRETE;
+
+const JWT_SECRETE="saddsadasca13dqd13dasdadsdddwaada";
 
 module.exports = (req, res, next) => {
     const token = req.query.token
 
     if(token){
-      jwt.verify(token, secret, (err, decoded) => {
+      jwt.verify(token, JWT_SECRETE, (err, decoded) => {
         if(err){
           const success = false;
           const message = 'Failed to authenticate token.'
