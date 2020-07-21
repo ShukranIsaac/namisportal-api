@@ -9,7 +9,7 @@ const session = require('express-session')
 const MongoStore = require('connect-mongo')(session)
 
 if (process.env.NODE_ENV !== 'production'){
-  require('dotenv').config()
+    require('dotenv').config()
 }
 
 const news = require('./components/news')
@@ -25,14 +25,14 @@ const db = mongoose.connection;
 const app = express()
 
 app.use(session({
-  secret: 'keyboard cat',
-  resave: false,
-  saveUninitialized: false,
-  store: new MongoStore({
-      mongooseConnection: db,
-      ttl: 5 * 24 * 60 * 60,
-      touchAfter: 24 * 3600 // time period in seconds
-  })
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: false,
+    store: new MongoStore({
+        mongooseConnection: db,
+        ttl: 5 * 24 * 60 * 60,
+        touchAfter: 24 * 3600 // time period in seconds
+    })
 }))
 
 app.use(bodyParser.json())
@@ -53,8 +53,8 @@ app.use('/users', users)
 
 //handle middleware
 app.use((error, req, res, next) => {
-  error = error.message ? error : {error}
-  return res.status(422).json(error)
+    error = error.message ? error : {error}
+    return res.status(422).json(error)
 })
 
 db.on('error', console.error.bind(console, 'connection error:'))
@@ -64,17 +64,18 @@ const PORT = process.env.PORT || '8083';
 const HOSTNAME = '127.0.0.1';
 
 app.get('/', function (req, res) {  
-  res.json({
-    message: 'Successfully connected...'
-  })
+    res.json({
+        message: 'Successfully connected...'
+    })
 })
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://${HOSTNAME}:${PORT}`) 
-  mongoose.connect(`mongodb://${HOSTNAME}/admin`, { 
-    useNewUrlParser: true, 
-    useUnifiedTopology: true 
-  })
+    console.log(`Server running at http://${HOSTNAME}:${PORT}`) 
+    mongoose.connect(`mongodb://${HOSTNAME}/admin`, { 
+        useNewUrlParser: true, 
+        useUnifiedTopology: true,
+        useCreateIndex:true,
+    })
 })
 
 module.exports = app
