@@ -18,8 +18,8 @@ router.get('/verify', verifyMailConfig)
 module.exports = router
 
 function getContactInfo(req, res, next)  {
-    const { baseUrl, query: {name}} = req
-    console.log(baseUrl)
+    const { query: {name}} = req
+
     return contactService.getContactInfo(name)
         .then( contacts => res.json(contacts))
         .catch( err => next(err))
@@ -65,56 +65,39 @@ function sendMessage({body}, res, next){
 // async..await is not allowed in global scope, must use a wrapper
 function main({fullName, email, subject, message}){
     return new Promise(async (resolve, reject) => {
-        let account = await nodemailer.createTestAccount();
-
-        // create reusable transporter object using the default SMTP transport
-        let transporter = nodemailer.createTransport({
-              sendmail: true,
-              newline: 'unix',
-              path: '/usr/sbin/sendmail'
-          });
-
-          let transporter2 = nodemailer.createTransport(smtpTransport({
-            service: "gmail",
+        let transporter = nodemailer.createTransport(smtpTransport({
             host: 'smtp.gmail.com',
+            // secure: true,
+            port: 465,
+            pool: true,
             auth: {
                 user: "minigridzada@gmail.com",
                 pass: "@M1nigrids"
             }
         }));
-
-        // let transporter3 = nodemailer.createTransport(smtpTransport({
-        //     host: '0.0.0.0',
-        //     port: 587,
-        //     auth: {
-        //         user: "test@0.0.0.0",
-        //         pass: "1234"
-        //     }
-        // }));
           
         // setup email data with unicode symbols
         let mailOptions = {
-          from: `"${fullName}: Contact Page" <${email}>`, // sender address
-          to: "psemberekajr@gmail.com", // list of receivers
+          from: `"${fullName}:"<${email}>`, // sender address
+          to: "minigridzada@gmail.com", // list of receivers
           subject, // Subject line
           text: message, // plain text body
           html: `<b>${message}</b>` // html body
         };
       
         // send mail with defined transport object
-        let info = await transporter2.sendMail(mailOptions)
-      
-        console.log("Message sent: %s", info.messageId);
-        // Preview only available when sending through an Ethereal account
-        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-
-        resolve({success: true})
+        transporter.sendMail(mailOptions, function(error, info) {
+            if (error) {
+                reject(error)
+            } else {
+                resolve(info)
+            }
+        })
     })
-  
 }
 
 async function verifyMailConfig(req, res, next){
-    console.log('here')
+    // console.log('here')
     let transporter = nodemailer.createTransport(smtpTransport({
         host: 'mail',
         port: 465,
@@ -126,26 +109,17 @@ async function verifyMailConfig(req, res, next){
         tls: { rejectUnauthorized: false },
         debug: true,
     }));
-    // verify connection configuration
-    // transporter.verify(function(error, success) {
-    //     if (error) {
-    //       console.log(error);
-    //     } else {
-    //       console.log("Server is ready to take our messages");
-    //     }
-    //   });
 
     // setup email data with unicode symbols
     let mailOptions = {
-      from: `"Akulinandia Sembereka: Contact Page" <akulinandia@gmail.com>`, // sender address
-      to: "psemberekajr@gmail.com", // list of receivers
-      subject: 'Sup Mofo', // Subject line
-      text: "message", // plain text body
-      html: `<b>message</b>` // html body
+        from: `"Akulinandia Sembereka: Contact Page"<akulinandia@gmail.com>`, // sender address
+        to: "psemberekajr@gmail.com", // list of receivers
+        subject: 'Sup Mofo', // Subject line
+        text: "message", // plain text body
+        html: `<b>message</b>` // html body
     };
 
     try {
-        
         // send mail with defined transport object
         let info = await transporter.sendMail(mailOptions)
       

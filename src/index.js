@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const express = require('express')
 const helmet = require('helmet')
 const cors = require('cors')
+const logger = require('morgan');
 
 const session = require('express-session')
 const MongoStore = require('connect-mongo')(session)
@@ -37,6 +38,7 @@ app.use(session({
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cors())
+app.use(logger('dev'))
 
 //app.use(routes)
 app.use(helmet())

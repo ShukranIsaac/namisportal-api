@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const userService = require('./service');
-const jwtm = require('../../middlewares/jwt')
+const jwtm = require('../../middlewares/jwt');
 
 // routes
 router.post('/authenticate', authenticate);
 router.post('/register', register);
+router.post('/forgot', recover);
+router.post('/forgot/:token', recover);
 router.get('/test', play);
 router.get('/', jwtm, getAll);
 router.get('/current',jwtm, getCurrent);
@@ -16,9 +18,21 @@ router.delete('/:id', jwtm, _delete);
 
 module.exports = router;
 
+function recover(req, res, next) {
+    return userService.accountReset(req, res, next)
+}
+
+function recover(req, res, next) {
+    return userService.accountRecovery(req, res, next)
+}
+
 function authenticate(req, res, next) {
+    const response = { 
+        message: 'Username or password is incorrect' 
+    };
+    
     userService.authenticate(req)
-        .then(user => user ? res.json(user) : res.status(400).json({ message: 'Username or password is incorrect' }))
+        .then(user => user ? res.json(user) : res.status(400).json(response))
         .catch(err => next(err));
 }
 
@@ -51,21 +65,6 @@ function update(req, res, next) {
     userService.update(req.params.id, req.body)
         .then((user) => res.json(user))
         .catch(err => next(err))
-
-    // if(req.session.user._id === req.params.id){
-    //     userService.update(req.params.id, req.body)
-    //     .then((user) => res.json(user))
-    //     .catch(err => next(err))
-    // }
-    // else if(req.session.user.roles.admin){
-    //     userService.update(req.params.id, req.body)
-    //     .then((user) => res.json(user))
-    //     .catch(err => next(err))
-    // }
-    // else{
-    //     const error = { message: 'Only an adminstrator or the actual user themselves can update user details'}
-    //     next(new Error(error))
-    // }
 }
 
 function _delete(req, res, next) {
