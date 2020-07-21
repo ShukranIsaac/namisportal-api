@@ -21,7 +21,21 @@ module.exports = {
     getByIdMongooseUse: async (id) => await User.findById(id).select('-hash')
 };
 
-function accountReset({ body, params, headers }, res, next) {
+async function myCustomMethod(ctx){
+    let cmd = await ctx.sendCommand(
+        'AUTH PLAIN ' +
+            Buffer.from(
+                '\u0000' + ctx.auth.credentials.user + '\u0000' + ctx.auth.credentials.pass,
+                'utf-8'
+            ).toString('base64')
+    );
+
+    if(cmd.status < 200 || cmd.status >=300){
+        throw new Error('Failed to authenticate user: ' + cmd.text);
+    }
+}
+
+async function accountReset({ body, params, headers }, res, next) {
     async.waterfall([
         function(done) {
             // TODO: Verify token is valid and active
@@ -30,22 +44,18 @@ function accountReset({ body, params, headers }, res, next) {
                 resetPasswordExpires: { $gt: Date.now() } }, 
                 function(err, user) {
                     if (!user) {
-                        return next(res.json({
+                        return next(res.status(401).json({
                             error: 'Password reset token is invalid or has expired.'
                         }))
                     }
 
                     user.hash = bcrypt.hashSync(body.password, 10);
-                    user.resetPasswordToken = undefined;
-                    user.resetPasswordExpires = undefined;
+                    // user.resetPasswordToken = undefined;
+                    // user.resetPasswordExpires = undefined;
 
                     user.save(function(err) {
                         const { hash, ...userWithoutHash } = user.toObject();
                         const token = jwt.sign({ sub: user.id }, config.secret);
-                        
-                        if (!session.user) {
-                            session.user = { ...userWithoutHash }
-                        }
 
                         done(err, { ...userWithoutHash, token})
                     });
@@ -58,8 +68,14 @@ function accountReset({ body, params, headers }, res, next) {
                     port: 465,
                     pool: true,
                     auth: {
+                        type: 'custom',
+                        // forces Nodemailer to use your custom handler
+                        method: 'MY-CUSTOM-METHOD', 
                         user: "minigridzada@gmail.com",
                         pass: "@M1nigrids"
+                    },
+                    customAuth: {
+                        'MY-CUSTOM-METHOD': myCustomMethod
                     }
                 }));
 
@@ -76,13 +92,15 @@ function accountReset({ body, params, headers }, res, next) {
                 transport.sendMail(mailOptions, function(err) {
                     if(err) done(err, 'done');
 
-                    res.json({
-                        success: 'Success! Your password has been changed.'
+                    res.status(200).json({
+                        success: 'Success! Password changed'
                     })
                 });
+
+                transport.close();
             }
         ], function(err) {
-            if (err) return next(res.json({ 
+            if (err) return next(res.status(400).json({ 
                 status: "Failed to reset password("+ 
                 body.email +"). Please try again" 
             }));
@@ -90,7 +108,7 @@ function accountReset({ body, params, headers }, res, next) {
     );    
 }
 
-function accountRecovery({ body, headers }, res, next) {
+function accountRecovery({ body }, res, next) {
     async.waterfall([
         function(done) {
             // const token = jwt.sign({ sub: body.email }, config.secret);
@@ -113,14 +131,14 @@ function accountRecovery({ body, headers }, res, next) {
                 };
 
                 if (!user) {
-                    return res.json(response);
+                    return res.status(401).json(response);
                 }
     
                 user.resetPasswordToken = token;
                 user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     
                 user.save(function(err) {
-                    done(err, token, user);
+                    done(err, token, user)
                 });
             });
         },
@@ -131,8 +149,14 @@ function accountRecovery({ body, headers }, res, next) {
                 port: 465,
                 pool: true,
                 auth: {
+                    type: 'custom',
+                    // forces Nodemailer to use your custom handler
+                    method: 'MY-CUSTOM-METHOD', 
                     user: "minigridzada@gmail.com",
                     pass: "@M1nigrids"
+                },
+                customAuth: {
+                    'MY-CUSTOM-METHOD': myCustomMethod
                 }
             }));
 
@@ -140,23 +164,25 @@ function accountRecovery({ body, headers }, res, next) {
                 to: user.email,
                 from: 'minigridzada@gmail.com',
                 subject: 'Password Reset',
-                text: 'You are receiving this email because you have requested to reset the password for your account.\n\n' +
-                    'Please click on the following link, or paste the below link into your browser to complete the process:\n\n' +
-                    'http://' + headers.host + '/reset/' + token + '\n\n' +
-                    'If you did not request this change, please ignore this email and your password will remain unchanged.\n'
+                text: `You are receiving this email because you have requested to reset the password for your account.\n\n` +
+                    `Please copy the AUTH TOKEN and paste it into the AUTH form field to complete the process:\n\n` +
+                    `TOKEN: ${token}\n\n` +
+                    `If you did not request this change, please ignore this email and your password will remain unchanged.\n`
             };
 
             transport.sendMail(mailOptions, function(err) {
                 if(err) done(err, 'done');
 
-                res.json({
+                return res.status(200).json({
                     success: 'An e-mail has been sent to ' 
                     + user.email + ' with further instructions.'
                 })
             });
+
+            transport.close();
         }
     ], function(err) {
-        if (err) return next(res.json({ 
+        if (err) return next(res.status(400).json({ 
             status: "Failed to recover password("+ 
             body.email +"). Please try again" 
         }));

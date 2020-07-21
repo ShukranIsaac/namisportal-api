@@ -7,7 +7,7 @@ const jwtm = require('../../middlewares/jwt');
 router.post('/authenticate', authenticate);
 router.post('/register', register);
 router.post('/forgot', recover);
-router.post('/forgot/:token', recover);
+router.post('/forgot/:token', resetPassword);
 router.get('/test', play);
 router.get('/', jwtm, getAll);
 router.get('/current',jwtm, getCurrent);
@@ -18,7 +18,7 @@ router.delete('/:id', jwtm, _delete);
 
 module.exports = router;
 
-function recover(req, res, next) {
+function resetPassword(req, res, next) {
     return userService.accountReset(req, res, next)
 }
 
