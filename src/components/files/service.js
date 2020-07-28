@@ -8,7 +8,6 @@ module.exports = {
     createOne: async (newFile) => await File.create(newFile),
     delete: async (id) => await File.findByIdAndDelete(id).lean(),
     update: async (document, props) => {
-        console.log(document)
         document.set(props)
         return await document.save()
     }                                                                                      

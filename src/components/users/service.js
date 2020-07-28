@@ -69,7 +69,7 @@ async function accountReset({ body, params, headers }, res, next) {
                     pool: true,
                     auth: {
                         type: 'custom',
-                        // forces Nodemailer to use your custom handler
+                        // forces Nodemailer to use custom handler
                         method: 'MY-CUSTOM-METHOD', 
                         user: "minigridzada@gmail.com",
                         pass: "@M1nigrids"
@@ -150,7 +150,7 @@ function accountRecovery({ body }, res, next) {
                 pool: true,
                 auth: {
                     type: 'custom',
-                    // forces Nodemailer to use your custom handler
+                    // forces Nodemailer to use custom handler
                     method: 'MY-CUSTOM-METHOD', 
                     user: "minigridzada@gmail.com",
                     pass: "@M1nigrids"

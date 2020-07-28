@@ -107,7 +107,10 @@ async function updateFile(req, res){
         
         try {
             const document = await fileService.getByIdMongooseUse(req.params.uid)
-    
+
+            // console.log(document)
+            // console.log(req.body)
+
             return fileService.update(document, req.body)
                 .then(updatedFile => Promise.resolve(updatedFile))
                 .catch(error => Promise.reject(error))
