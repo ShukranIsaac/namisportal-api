@@ -5,7 +5,7 @@ const jwtm = require('../../middlewares/jwt');
 
 // routes
 router.post('/authenticate', authenticate);
-router.post('/register', register);
+router.post('/register', (req, res) => userService.createAccount(req, res));
 router.post('/forgot', recover);
 router.post('/forgot/:token', resetPassword);
 router.get('/test', play);

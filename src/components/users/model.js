@@ -1,39 +1,48 @@
-const mongooseStringQuery = require('mongoose-string-query')
-const Schema = require('mongoose').Schema
-const mongoose = require('mongoose');
+const Sequelize = require('sequelize');
 const bcrypt = require('bcryptjs');
+const DBConfig = require('../config/database.config');
 
-const UserSchema = new Schema({
-    username: { type: String, unique: true, required: true },
-    email: { type: String, unique: true, required: true },
-    hash: { type: String, required: true },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    createdDate: { type: Date, default: Date.now },
-    roles: {
-        writer: {type: Boolean, default: false},
-        publisher: {type: Boolean, default: false},
-        admin: {type: Boolean, default: false}
+var User = DBConfig.define('users', {
+    _id: { type: Sequelize.STRING, unique: true, allowNull: false },
+    username: { type: Sequelize.STRING, unique: true, allowNull: false },
+    firstName: { type: Sequelize.STRING, unique: false, allowNull: false },
+    lastName: { type: Sequelize.STRING, unique: false, allowNull: false },
+    email: { type: Sequelize.STRING, unique: true, allowNull: false },
+    password: { type: Sequelize.STRING, allowNull: false },
+    resetPasswordExpires: { type: Sequelize.DATE, unique: false, allowNull: true },
+    resetPasswordToken: { type: Sequelize.STRING, unique: true, allowNull: true },
+    roles: { type: Sequelize.JSON, allowNull: false }
+}, {
+    hooks: {
+        beforeCreate: (user) => {
+            const salt = bcrypt.genSaltSync();
+            user.password = bcrypt.hashSync(user.password, salt);
+        }
     },
-    resetPasswordToken: String,
-    resetPasswordExpires: Date
+    instanceMethods: {
+        isPasswordEqual: function(password) {
+            return bcrypt.compareSync(password, this.password);
+        },
+        comparePassword: function(candidatePassword, hash, cb) {
+            return bcrypt.compare(candidatePassword, hash, function(err, isMatch) {
+                if (err) return cb(err);
+                return cb(null, isMatch);
+            });
+        },
+        canPlayRoleOf: function(role) {
+            if (this.roles[role]) {
+                return true
+            }else{
+                return false
+            }
+        }
+    }
 });
 
-UserSchema.plugin(mongooseStringQuery)
+DBConfig.sync({ 
+    alter: true 
+})
+.then(() => console.log('users table created successfully'))
+.catch(error => console.log('Failed to create users table: ', error));
 
-UserSchema.methods.canPlayRoleOf = function(role) {
-    if (this.roles[role]) {
-        return true
-    }else{
-        return false
-    }
-};
-
-UserSchema.methods.comparePassword = function(candidatePassword, hash, cb) {
-    return bcrypt.compare(candidatePassword, hash, function(err, isMatch) {
-        if (err) return cb(err);
-        return cb(null, isMatch);
-    });
-};
-
-module.exports = mongoose.model('User', UserSchema)
+module.exports = User;

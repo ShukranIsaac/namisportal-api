@@ -1,15 +1,44 @@
 const config = require('../../config.json');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const User = require('./model')
+const User = require('./model');
 const crypto = require('crypto');
 const async = require('async');
+const Status = require('../status.codes');
 
 const nodemailer = require("nodemailer");
-const smtpTransport = require('nodemailer-smtp-transport')
+const smtpTransport = require('nodemailer-smtp-transport');
+const UIDGenerator = require('../uuid.generate');
 
 module.exports = {
     authenticate,
+    createAccount: async function({
+        body: {
+            username,
+            email,
+            password,
+            firstName,
+            lastName,
+            roles
+        }
+    }, res) {
+        return await User.create({
+            _id: UIDGenerator.UUID(),
+            username,
+            firstName,
+            lastName,
+            email,
+            password,
+            roles
+        }).then(user => {
+            delete user.dataValues.password;
+            delete user.dataValues.id;
+            res.status(Status.STATUS_OK).json(user.dataValues);
+        }).catch(error => {
+            console.log(error)
+            res.status(Status.STATUS_INTERNAL_SERVER_ERROR).json(error.errors)
+        })
+    },
     login,
     getAll,
     getById,
