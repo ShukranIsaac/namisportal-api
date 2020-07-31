@@ -10,14 +10,30 @@ const nodemailer = require("nodemailer");
 const smtpTransport = require('nodemailer-smtp-transport');
 const UIDGenerator = require('../uuid.generate');
 
-const attributes = {
-    exclude: ['id', 'password']
-}
+const attributes = [ 
+    '_id', 'username', 
+    ['firstname', 'firstName'], ['lastname', 'lastName'],
+    'email', 'roles',
+    'resetPasswordExpires',
+    'resetPasswordToken'
+]
 
 module.exports = {
-    authenticate,
+    authenticate: async ({body: { username, password}, session}) => {
+        const user = await User.findOne({ username });
+        if (user && bcrypt.compareSync(password, user.hash)) {
+            const { hash, ...userWithoutHash } = user.toObject();
+            const token = jwt.sign({ sub: user.id }, config.secret);
+            
+            if (!session.user) {
+                session.user = { ...userWithoutHash }
+            }
+              
+            return { ...userWithoutHash, token};
+        }
+    },
 
-    createAccount: async function({
+    createAccount: async ({
         body: {
             username,
             email,
@@ -26,17 +42,21 @@ module.exports = {
             lastName,
             roles
         }
-    }, res) {
-        
-        if (await User.findOne({ username: username })) {
-            throw `The username ${username} is already taken'`;
+    }, res) => {
+        if (await User.findOne({
+            where: { username: username }
+        })) {
+            return res.status(Status.STATUS_CONFLICT).send({
+                success: false,
+                message: `The username ${username} is already taken'`
+            })
         }
 
         return await User.create({
             _id: UIDGenerator.UUID(),
             username,
-            firstName,
-            lastName,
+            firstname: firstName,
+            lastname: lastName,
             email,
             password,
             roles
@@ -75,9 +95,12 @@ module.exports = {
         });
     },
 
-    getAll: async () => await User.findAll({ attributes }),
+    getAll: async () => await User.findAll({ attributes: attributes }),
 
-    getById: async (id) => await User.findOne({ where: { _id: id }, attributes }),
+    getById: async (id) => await User.findOne({ 
+        where: { _id: id }, 
+        attributes: attributes
+    }),
 
     update,
 
@@ -85,7 +108,10 @@ module.exports = {
 
     accountReset,
 
-    delete: async id => await User.destroy({ where: { _id: id }}),
+    delete: async id => await User.destroy({ 
+        where: { _id: id },
+        attributes: attributes
+    }),
 
     getByIdMongooseUse: async (id) => await User.findById(id)
 };
@@ -256,43 +282,6 @@ function accountRecovery({ body }, res, next) {
             body.email +"). Please try again" 
         }));
     });
-}
-
-async function authenticate({body: { username, password}, session}) {
-    const user = await User.findOne({ username });
-    if (user && bcrypt.compareSync(password, user.hash)) {
-        const { hash, ...userWithoutHash } = user.toObject();
-        const token = jwt.sign({ sub: user.id }, config.secret);
-        
-        if (!session.user) {
-            session.user = { ...userWithoutHash }
-        }
-          
-        return { ...userWithoutHash, token};
-    }
-}
-
-async function create(userParam) {
-    // validate
-    if (await User.findOne({ username: userParam.username })) {
-        throw `The username ${userParam.username} is already taken'`;
-    }
-
-    const user = new User(userParam);
-
-    // hash password
-    if (userParam.password) {
-        user.hash = bcrypt.hashSync(userParam.password, 10);
-    }
-
-    try {
-       user.save();
-       const { hash, ...userWithoutHash } = user.toObject();
-       return Promise.resolve(userWithoutHash)
-        
-    } catch (error) {
-        return Promise.reject(error)
-    }
 }
 
 async function update(id, userParam) {

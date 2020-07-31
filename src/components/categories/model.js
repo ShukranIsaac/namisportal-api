@@ -9,9 +9,18 @@ const Category = PostgresORM.define('categories', {
     _id: { type: Sequelize.STRING, unique: true, allowNull: false },
     name: { type: Sequelize.STRING, unique: true, allowNull: false },
     about: { type: Sequelize.STRING, allowNull: false },
-    shortName: { type: Sequelize.STRING, allowNull: false },
+    shortname: { type: Sequelize.STRING, allowNull: false },
     content: {type: Sequelize.STRING, allowNull: true}
 });
+
+Category.hasMany(Category, {
+    foreignKey: {
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+        allowNull: true,
+        name: "subcategory"
+    }
+})
 
 const CategorySchema = new Schema(
     {
@@ -70,4 +79,4 @@ CategorySchema.post('remove', function(doc, next) {
     next();
 });
 
-module.exports = mongoose.model('Category', CategorySchema)
+module.exports = Category;

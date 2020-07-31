@@ -6,19 +6,19 @@ const categoriesService = require('./service')
 const fileServise = require('../files/service')
 const fileUploadMiddleware = require('../files/upload.middleware')
 
-router.get('/', getAllCategories)
-router.get('/:uid', getOneCategory)
+router.get('/', getAllCategories);
+router.get('/:uid', getOneCategory);
 router.get('/:uid/documents', getDocuments)
 router.get('/:uid/sub-categories', getSubCategories)
 router.get('/:uid/main-sub-category', getMainSubCategory)
 router.get('/:uid/by-child', getByChild)
 
-router.post('/', jwtm, addCategory)
-router.use('/:uid/files', jwtm, fileUploadMiddleware)
-router.post('/:uid/sub-categories', jwtm, addSubCategory)
-router.post('/:uid/main-sub-category', jwtm, addMainSubcategory)
-router.patch('/:uid/', jwtm, updateCategory)
-router.delete('/:uid/', jwtm, deleteCategory)
+router.post('/', /*jwtm,*/ addCategory)
+router.use('/:uid/files', /*jwtm,*/ fileUploadMiddleware)
+router.post('/:uid/sub-categories', /*jwtm,*/ addSubCategory)
+router.post('/:uid/main-sub-category', /*jwtm,*/ addMainSubcategory)
+router.patch('/:uid/', /*jwtm,*/ updateCategory)
+router.delete('/:uid/', /*jwtm,*/ deleteCategory)
 
 router.post('/:uid/documents', addDocument)
 router.delete('/:uid/documents/:docId', removeDocument)
@@ -62,10 +62,8 @@ function getByChild(req, res, next){
         .catch(error => console.error(error))
 }
 
-function getAllCategories({query: {name}}, res, next)  {
-    return categoriesService.getAll(name)
-        .then( categories => res.json(categories))
-        .catch( err => next(err))
+function getAllCategories({query}, res, next) {
+    return categoriesService.all(query, res, next);
 }
 
 function getOneCategory({params: {uid}}, res, next)  {
@@ -108,10 +106,8 @@ function updateCategory({params: {uid}, body}, res, next)  {
         .catch( err => next(err))
 }
 
-function addCategory({body}, res, next){
-    return categoriesService.createOne(body)
-        .then( newCategory => res.json(newCategory) )
-        .catch( err => next(err))
+function addCategory(req, res, next){
+    return categoriesService.createOne(req, res, next);
 }
 
 function addFile({params: uid}, res, next){

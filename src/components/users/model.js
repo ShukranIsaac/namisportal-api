@@ -5,8 +5,8 @@ const PostgresORM = require('../config/database.config');
 var User = PostgresORM.define('users', {
     _id: { type: Sequelize.STRING, unique: true, allowNull: false },
     username: { type: Sequelize.STRING, unique: true, allowNull: false },
-    firstName: { type: Sequelize.STRING, unique: false, allowNull: false },
-    lastName: { type: Sequelize.STRING, unique: false, allowNull: false },
+    firstname: { type: Sequelize.STRING, unique: false, allowNull: false },
+    lastname: { type: Sequelize.STRING, unique: false, allowNull: false },
     email: { type: Sequelize.STRING, unique: true, allowNull: false },
     password: { type: Sequelize.STRING, allowNull: false },
     resetPasswordExpires: { type: Sequelize.DATE, unique: false, allowNull: true },
