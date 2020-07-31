@@ -1,24 +1,13 @@
-const mongooseStringQuery = require('mongoose-string-query')
-const Schema = require('mongoose').Schema
-const mongoose = require('mongoose');
+const Sequelize = require('sequelize');
+const PostgresORM = require('../config/database.config');
 
-const StakeholderSchema = new Schema(
-    {
-        name: { type: String, unique: true, required: true },
-        about: String,
-        mission: String,
-        vision: String,
-        contacts: {
-            email: { type: String, unique: true, required: true },
-            telephone: String,
-            website: String,
-            address: String
-        },
-        image: String
-    },
-    {collection: 'stakeholder'}
-);
+const Stakeholder = PostgresORM.define('stakeholders', {
+    _id: { type: Sequelize.STRING, unique: true, allowNull: false },
+    name: { type: Sequelize.STRING, unique: true, allowNull: false },
+    about: { type: Sequelize.TEXT, allowNull: false },
+    mission: { type: Sequelize.TEXT, allowNull: false },
+    vision: { type: Sequelize.TEXT, allowNull: false },
+    image: { type: Sequelize.TEXT, allowNull: false }
+});
 
-StakeholderSchema.plugin(mongooseStringQuery)
-
-module.exports = mongoose.model('Stakeholder', StakeholderSchema)
+module.exports = Stakeholder;

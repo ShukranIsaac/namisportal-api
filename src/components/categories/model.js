@@ -1,6 +1,17 @@
+const Sequelize = require('sequelize');
+const PostgresORM = require('../config/database.config');
+
 const mongooseStringQuery = require('mongoose-string-query')
 const Schema = require('mongoose').Schema
 const mongoose = require('mongoose');
+
+const Category = PostgresORM.define('categories', {
+    _id: { type: Sequelize.STRING, unique: true, allowNull: false },
+    name: { type: Sequelize.STRING, unique: true, allowNull: false },
+    about: { type: Sequelize.STRING, allowNull: false },
+    shortName: { type: Sequelize.STRING, allowNull: false },
+    content: {type: Sequelize.STRING, allowNull: true}
+});
 
 const CategorySchema = new Schema(
     {

@@ -10,8 +10,13 @@ const nodemailer = require("nodemailer");
 const smtpTransport = require('nodemailer-smtp-transport');
 const UIDGenerator = require('../uuid.generate');
 
+const attributes = {
+    exclude: ['id', 'password']
+}
+
 module.exports = {
     authenticate,
+
     createAccount: async function({
         body: {
             username,
@@ -22,6 +27,11 @@ module.exports = {
             roles
         }
     }, res) {
+        
+        if (await User.findOne({ username: username })) {
+            throw `The username ${username} is already taken'`;
+        }
+
         return await User.create({
             _id: UIDGenerator.UUID(),
             username,
@@ -33,21 +43,51 @@ module.exports = {
         }).then(user => {
             delete user.dataValues.password;
             delete user.dataValues.id;
-            res.status(Status.STATUS_OK).json(user.dataValues);
+            res.status(Status.STATUS_OK)
+                .json(user.dataValues);
         }).catch(error => {
             console.log(error)
-            res.status(Status.STATUS_INTERNAL_SERVER_ERROR).json(error.errors)
+            res.status(Status.STATUS_INTERNAL_SERVER_ERROR)
+                .json(error.errors)
         })
     },
-    login,
-    getAll,
-    getById,
-    create,
+
+    login: async ({body: { username, password}, session}) => {
+        // const data = 
+        return await User.findOne({ 
+            username: username 
+        }, function(err, user) {
+            
+            if (!user || err) return null;
+    
+            return user.comparePassword(password, user.hash, function(err, isMatch) {
+                if (isMatch) {
+                    const { hash, ...userWithoutHash } = user.toObject();
+                    const token = jwt.sign({ sub: user.id }, config.secret);
+                    
+                    if (!session.user) {
+                        session.user = { ...userWithoutHash }
+                    }
+    
+                    return {...userWithoutHash, token};
+                }
+            });
+        });
+    },
+
+    getAll: async () => await User.findAll({ attributes }),
+
+    getById: async (id) => await User.findOne({ where: { _id: id }, attributes }),
+
     update,
+
     accountRecovery,
+
     accountReset,
-    delete: _delete,
-    getByIdMongooseUse: async (id) => await User.findById(id).select('-hash')
+
+    delete: async id => await User.destroy({ where: { _id: id }}),
+
+    getByIdMongooseUse: async (id) => await User.findById(id)
 };
 
 async function myCustomMethod(ctx){
@@ -218,26 +258,6 @@ function accountRecovery({ body }, res, next) {
     });
 }
 
-async function login({body: { username, password}, session}) {
-    return await User.findOne({ username: username }, function(err, user) {
-        
-        if (!user || err) return null;
-
-        return user.comparePassword(password, user.hash, function(err, isMatch) {
-            if (isMatch) {
-                const { hash, ...userWithoutHash } = user.toObject();
-                const token = jwt.sign({ sub: user.id }, config.secret);
-                
-                if (!session.user) {
-                    session.user = { ...userWithoutHash }
-                }
-
-                return {...userWithoutHash, token};
-            }
-        });
-    });
-}
-
 async function authenticate({body: { username, password}, session}) {
     const user = await User.findOne({ username });
     if (user && bcrypt.compareSync(password, user.hash)) {
@@ -250,18 +270,6 @@ async function authenticate({body: { username, password}, session}) {
           
         return { ...userWithoutHash, token};
     }
-}
-
-async function getAll() {
-    return await User.find().select('-hash').lean()
-}
-
-async function getById(id) {
-    return await User.findById(id).select('-hash').lean()
-}
-
-async function getByUsername(username) {
-    return await User.findOne({ username }).select('-hash')
 }
 
 async function create(userParam) {
@@ -313,8 +321,4 @@ async function update(id, userParam) {
     await user.save()
     const { hash, ...userWithoutHash } = user.toObject();
     return {user: userWithoutHash}
-}
-
-async function _delete(id) {
-    return await User.findByIdAndRemove(id).select('-hash').lean()
 }

@@ -1,17 +1,12 @@
-const mongooseStringQuery = require('mongoose-string-query')
-const Schema = require('mongoose').Schema
-const mongoose = require('mongoose');
+const Sequelize = require('sequelize');
+const PostgresORM = require('../config/database.config');
 
-const ContactSchema = new Schema(
-    {
-        email: { type: Array, default: [] },
-        telephone: { type: Array, default: [] },
-        website: { type: String, default: null },
-        address: { type: Array, default: [] }
-    },
-    {collection: 'contact'}
-);
+const Contact = PostgresORM.define('contacts', {
+    _id: { type: Sequelize.STRING, unique: true, allowNull: false },
+    email: { type: Sequelize.STRING, unique: true, allowNull: true },
+    telephone: { type: Sequelize.STRING, unique: true, allowNull: true },
+    website: { type: Sequelize.STRING, allowNull: true },
+    address: { type: Sequelize.STRING, allowNull: false }
+});
 
-ContactSchema.plugin(mongooseStringQuery)
-
-module.exports = mongoose.model('Contact', ContactSchema)
+module.exports = Contact;

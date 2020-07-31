@@ -8,13 +8,14 @@ router.post('/authenticate', authenticate);
 router.post('/register', (req, res) => userService.createAccount(req, res));
 router.post('/forgot', recover);
 router.post('/forgot/:token', resetPassword);
+router.get('/logout/:id', destroy)
 router.get('/test', play);
-router.get('/', jwtm, getAll);
-router.get('/current',jwtm, getCurrent);
-router.get('/:id', jwtm, getById);
-router.put('/:id', jwtm, update);
-router.patch('/:id', jwtm, update);
-router.delete('/:id', jwtm, _delete);
+router.get('/', getAll);
+router.get('/current', getCurrent);
+router.get('/:id', getById);
+router.put('/:id', update);
+router.patch('/:id', update);
+router.delete('/:id', _delete);
 
 module.exports = router;
 
@@ -36,12 +37,6 @@ function authenticate(req, res, next) {
         .catch(err => next(err));
 }
 
-function register(req, res, next) {
-    userService.create(req.body)
-        .then((user) => res.json(user))
-        .catch(err => next(err));
-}
-
 function getAll(req, res, next) {
     userService.getAll()
         .then(users => res.json(users))
@@ -56,12 +51,14 @@ function getCurrent(req, res, next) {
 
 function getById(req, res, next) {
     userService.getById(req.params.id)
-        .then(user => user ? res.json(user) : res.sendStatus(404))
+        .then(user => user ? res.json(user.dataValues) : res.status(404).send({
+            success: false,
+            message: 'No resource with id: ' + req.params.id,
+        }))
         .catch(err => next(err));
 }
 
 function update(req, res, next) { 
-    
     userService.update(req.params.id, req.body)
         .then((user) => res.json(user))
         .catch(err => next(err))
@@ -69,17 +66,21 @@ function update(req, res, next) {
 
 function _delete(req, res, next) {
     userService.delete(req.params.id)
-        .then(({user}) => {
-            return res.json({
-                success: true,
-                user
-            })
-        })
-        .catch(err => next(err));
+        .then(user => user ? res.json(user.dataValues) : res.status(404).send({
+            success: false,
+            message: 'No resource with id: ' + req.params.id,
+        }))
+        .catch(error => {
+            console.log(error);
+            next(res.status(400).send({
+                success: false,
+                error,
+            }))
+        });
 }
 
 function play(req, res, next) {
-    userService.getByIdMongooseUse(req.session.user._id)
+    userService.getById(req.session.user._id)
         .then((user) => {
             user.roles.writer = true
             console.log(user.canPlayRoleOf('publisher'))
@@ -91,7 +92,11 @@ function play(req, res, next) {
 
 function destroy(req, res, next){
     req.session.destroy(function(err) {
-        // cannot access session here
-        res.json({success: true, message: "successful logout"})
+        if (err) return;
+
+        res.json({
+            success: true, 
+            message: "successful logout"
+        })
     })
 }

@@ -1,20 +1,11 @@
-const mongooseStringQuery = require('mongoose-string-query')
-const Schema = require('mongoose').Schema
-const mongoose = require('mongoose');
+const Sequelize = require('sequelize');
+const PostgresORM = require('../config/database.config');
 
-const NewsSchema = new Schema(
-    {
-        title: { type: String, required: true },
-        article: { type: String, required: true },
-        images: [
-            { type: Schema.Types.ObjectId, ref: 'File' }
-        ],
-        createdDate: { type: Date, default: Date.now },
-        isPublished: {type: Boolean, default: false}
-    },
-    {collection: 'news'}
-);
+const News = PostgresORM.define('news', {
+    _id: { type: Sequelize.STRING, unique: true, allowNull: false },
+    title: { type: Sequelize.STRING, allowNull: false },
+    article: { type: Sequelize.STRING, allowNull: false },
+    isPublished: { type: Sequelize.BOOLEAN, allowNull: false, default: false }
+});
 
-NewsSchema.plugin(mongooseStringQuery)
-
-module.exports = mongoose.model('News', NewsSchema)
+module.exports = News;

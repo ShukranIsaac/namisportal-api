@@ -1,8 +1,8 @@
 const Sequelize = require('sequelize');
 const bcrypt = require('bcryptjs');
-const DBConfig = require('../config/database.config');
+const PostgresORM = require('../config/database.config');
 
-var User = DBConfig.define('users', {
+var User = PostgresORM.define('users', {
     _id: { type: Sequelize.STRING, unique: true, allowNull: false },
     username: { type: Sequelize.STRING, unique: true, allowNull: false },
     firstName: { type: Sequelize.STRING, unique: false, allowNull: false },
@@ -39,10 +39,10 @@ var User = DBConfig.define('users', {
     }
 });
 
-DBConfig.sync({ 
-    alter: true 
-})
-.then(() => console.log('users table created successfully'))
-.catch(error => console.log('Failed to create users table: ', error));
+(async () => {
+    await PostgresORM.sync()
+    .then(() => console.log('Tables created successfully'))
+    .catch(error => console.log('Failed to create database tables: ', error))
+})()
 
 module.exports = User;
