@@ -1,7 +1,7 @@
 const config = require('../../config.json');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const User = require('./model');
+const { User, Role } = require('./user.model');
 const crypto = require('crypto');
 const async = require('async');
 const Status = require('../status.codes');
@@ -13,8 +13,7 @@ const UIDGenerator = require('../uuid.generate');
 const attributes = [ 
     '_id', 'username', 
     ['firstname', 'firstName'], ['lastname', 'lastName'],
-    'email', 'roles',
-    'resetPasswordExpires',
+    'email', 'resetPasswordExpires',
     'resetPasswordToken'
 ]
 
@@ -33,6 +32,34 @@ module.exports = {
         }
     },
 
+    createRoles: async ({ params, body: { roles } , session}, res, next) => {
+        if (roles instanceof Array) {
+            if (!await User.findOne({
+                where: { _id: params.id }
+            })) {
+                return res.status(Status.STATUS_UN_AUTHORIZED).send({
+                    success: false,
+                    message: `Unauthorized Request`
+                })
+            }
+            
+            const userroles = roles.map(role => ({ 
+                _id: UIDGenerator.UUID(), 
+                name: role,
+                description: role.toUpperCase()
+            }))
+            res.json(await Role.bulkCreate(userroles, {
+                fields: ['_id', 'name', 'description']
+            }))
+        } else {
+            res.status(Status.STATUS_UNPROCESSABLE_ENTITY)
+                .send({
+                    success: false,
+                    message: "Error parsing object"
+                });
+        }
+    },
+
     createAccount: async ({
         body: {
             username,
@@ -48,28 +75,36 @@ module.exports = {
         })) {
             return res.status(Status.STATUS_CONFLICT).send({
                 success: false,
-                message: `The username ${username} is already taken'`
+                message: `The username ${username} is already taken`
             })
         }
+        
+        const myRoles = await getUserRoles(roles);
 
-        return await User.create({
+        // Finally associate these roles with 
+        // this user being created
+        const user = await User.create({
             _id: UIDGenerator.UUID(),
             username,
             firstname: firstName,
             lastname: lastName,
             email,
-            password,
-            roles
-        }).then(user => {
-            delete user.dataValues.password;
-            delete user.dataValues.id;
-            res.status(Status.STATUS_OK)
-                .json(user.dataValues);
-        }).catch(error => {
+            password
+        })
+        .catch(error => {
             console.log(error)
             res.status(Status.STATUS_INTERNAL_SERVER_ERROR)
                 .json(error.errors)
         })
+        
+        await user.addRole(myRoles)
+            .then(() => {
+                res.status(Status.STATUS_OK)
+                    .json({
+                        status: true,
+                        message: 'Account successfully created'
+                    });
+            })
     },
 
     login: async ({body: { username, password}, session}) => {
@@ -95,7 +130,20 @@ module.exports = {
         });
     },
 
-    getAll: async () => await User.findAll({ attributes: attributes }),
+    getAll: async () => await User.findAll({ 
+        attributes: attributes,
+        include: [{
+            model: Role,
+            as: 'roles',
+            all: true,
+            attributes: {
+                exclude: ['id']
+            },
+            through: {
+                attributes: [],
+            }
+        }]
+    }),
 
     getById: async (id) => await User.findOne({ 
         where: { _id: id }, 
@@ -115,6 +163,39 @@ module.exports = {
 
     getByIdMongooseUse: async (id) => await User.findById(id)
 };
+
+const getUserRoles = async roles => {
+    return await Role.findAll({ attributes: ['id', 'name'] })
+    .then(_roles => {
+        if(_roles) {
+            return res.status(Status.STATUS_NOT_FOUND).send({
+                success: false,
+                message: `Not user roles created yet.`
+            })
+        }
+
+        return Object.entries(roles)
+            .map(role => {
+                if (role[1]) return role[0]
+                else return
+            })
+            .map(role => {
+                if (role) {
+                    for (let index = 0; index < _roles.length; index++) {
+                        if(role === _roles[index].name) {
+                            return _roles[index].id
+                        }
+                    }
+                }
+            }).filter(role => role!==null && role!==undefined)
+    }).catch(error => {
+        console.log(error)
+        res.status(Status.STATUS_INTERNAL_SERVER_ERROR).send({
+            success: false,
+            message: error
+        })
+    })
+}
 
 async function myCustomMethod(ctx){
     let cmd = await ctx.sendCommand(

@@ -5,6 +5,7 @@ const jwtm = require('../../middlewares/jwt')
 const categoriesService = require('./service')
 const fileServise = require('../files/service')
 const fileUploadMiddleware = require('../files/upload.middleware')
+const Status = require('../status.codes')
 
 router.get('/', getAllCategories);
 router.get('/:uid', getOneCategory);
@@ -68,8 +69,8 @@ function getAllCategories({query}, res, next) {
 
 function getOneCategory({params: {uid}}, res, next)  {
     return categoriesService.getById(uid)
-        .then( categories => res.json(categories))
-        .catch( err => next(err))
+        .then(({ dataValues: { category, ...rest } }) => res.json(rest))
+        .catch(err => next(err))
 }
 
 function getDocuments({params: {uid}}, res, next)  {
@@ -79,9 +80,7 @@ function getDocuments({params: {uid}}, res, next)  {
 }
 
 function getSubCategories({params: {uid}}, res, next)  {
-    return categoriesService.getSubCategories(uid)
-        .then( categories => res.json(categories.subCategories))
-        .catch( err => next(err))
+    categoriesService.getSubCategories(uid, res);
 }
 
 function getMainSubCategory({params: {uid}}, res, next)  {
@@ -111,7 +110,6 @@ function addCategory(req, res, next){
 }
 
 function addFile({params: uid}, res, next){
-
     return categoriesService.createOne(body)
         .then( newCategory => res.json(newCategory) )
         .catch( err => next(err))
@@ -119,7 +117,6 @@ function addFile({params: uid}, res, next){
 
 function addMainSubcategory({params: {uid}, body}, res, next){
     if (body.childUid !== undefined){
-        
         return categoriesService.getByIdMongooseUse(uid)
             .then((parent) => {
                 if (parent === null)
@@ -161,23 +158,21 @@ function addSubCategory({params: {uid}, body}, res, next){
     }
     else{
         // create new category if category to be assigned does not exist
-        return categoriesService.createOne(body)
-            .then(({_id}) => {
-                categoriesService.getByIdMongooseUse(uid)
-                .then( parentCategory => {
-                    addChildCategory(parentCategory, _id)
-                    .then(parentWithChild => res.json(parentWithChild))
-                    .catch( err => next(err))
-                })
-        })
-        .catch( err => next(err))
+        categoriesService.createSubCategory(uid, body, res)
+            .catch(error => {
+                console.log(error)
+                res.status(Status.STATUS_INTERNAL_SERVER_ERROR)
+                    .send({
+                        success: false,
+                        message: error
+                    });
+            })
     }
     
 }
 
 async function addChildCategory(parent, childId){
     //first check if child is already subcategory 
-
     if(JSON.stringify(parent.subCategories).includes(childId)){
         throw `sub-category already exists`
     }

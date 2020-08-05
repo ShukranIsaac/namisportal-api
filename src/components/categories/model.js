@@ -4,6 +4,7 @@ const PostgresORM = require('../config/database.config');
 const mongooseStringQuery = require('mongoose-string-query')
 const Schema = require('mongoose').Schema
 const mongoose = require('mongoose');
+const SubCategory = require('./sub.model');
 
 const Category = PostgresORM.define('categories', {
     _id: { type: Sequelize.STRING, unique: true, allowNull: false },
@@ -13,14 +14,27 @@ const Category = PostgresORM.define('categories', {
     content: {type: Sequelize.STRING, allowNull: true}
 });
 
-Category.hasMany(Category, {
+Category.belongsToMany(Category, { 
+    through: SubCategory, 
+    as: 'category', 
+    foreignKey: {
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+        allowNull: true,
+        name: "category"
+    } 
+});
+
+Category.belongsToMany(Category, { 
+    through: SubCategory, 
+    as: 'subCategories', 
     foreignKey: {
         onDelete: 'SET NULL',
         onUpdate: 'CASCADE',
         allowNull: true,
         name: "subcategory"
-    }
-})
+    } 
+});
 
 const CategorySchema = new Schema(
     {
