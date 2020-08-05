@@ -87,7 +87,7 @@ function update(req, res, next) {
 
 function _delete(req, res, next) {
     userService.delete(req.params.id)
-        .then(user => user ? res.json(user.dataValues) : res.status(404).send({
+        .then(user => user ? res.json(user) : res.status(404).send({
             success: false,
             message: 'No resource with id: ' + req.params.id,
         }))

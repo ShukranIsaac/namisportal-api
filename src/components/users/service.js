@@ -79,7 +79,7 @@ module.exports = {
             })
         }
         
-        const myRoles = await getUserRoles(roles);
+        const myRoles = await getUserRoles(roles, res);
 
         // Finally associate these roles with 
         // this user being created
@@ -164,10 +164,10 @@ module.exports = {
     getByIdMongooseUse: async (id) => await User.findById(id)
 };
 
-const getUserRoles = async roles => {
+const getUserRoles = async (roles, res) => {
     return await Role.findAll({ attributes: ['id', 'name'] })
     .then(_roles => {
-        if(_roles) {
+        if(!_roles) {
             return res.status(Status.STATUS_NOT_FOUND).send({
                 success: false,
                 message: `Not user roles created yet.`
