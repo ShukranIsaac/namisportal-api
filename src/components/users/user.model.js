@@ -14,7 +14,11 @@ var User = PostgresORM.define('users', {
     resetPasswordToken: { type: Sequelize.STRING, unique: true, allowNull: true }
 }, {
     hooks: {
-        beforeCreate: (user) => {
+        beforeCreate: user => {
+            const salt = bcrypt.genSaltSync();
+            user.password = bcrypt.hashSync(user.password, salt);
+        },
+        beforeUpdate: user => {
             const salt = bcrypt.genSaltSync();
             user.password = bcrypt.hashSync(user.password, salt);
         }

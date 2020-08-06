@@ -55,7 +55,7 @@ function getAll({ }, res, next) {
                 ...rest,
                 roles: getUserRoles(roles)
             }))
-            
+
             return res.json(listOfUsers)
         })
         .catch(err => next(err))
@@ -85,8 +85,8 @@ function getById(req, res, next) {
 }
 
 function update(req, res, next) { 
-    userService.update(req.params.id, req.body)
-        .then((user) => res.json(user))
+    userService.update(req.params.id, req.body, res)
+        // .then((user) => res.json(user))
         .catch(err => next(err))
 }
 

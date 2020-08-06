@@ -9,6 +9,7 @@ const Status = require('../status.codes');
 const nodemailer = require("nodemailer");
 const smtpTransport = require('nodemailer-smtp-transport');
 const UIDGenerator = require('../uuid.generate');
+const { Op } = require('sequelize');
 
 const attributes = [ 
     '_id', 'username', 
@@ -70,14 +71,8 @@ module.exports = {
             roles
         }
     }, res) => {
-        if (await User.findOne({
-            where: { username: username }
-        })) {
-            return res.status(Status.STATUS_CONFLICT).send({
-                success: false,
-                message: `The username ${username} is already taken`
-            })
-        }
+        // check if user exists
+        await userExists(username, res);
         
         const myRoles = await getUserRoles(roles, res);
 
@@ -150,7 +145,78 @@ module.exports = {
         attributes: attributes
     }),
 
-    update,
+    update: async (id, userParam, res) => {
+        let user = await User.findOne({
+            where: { _id: id }
+        })
+
+        // validate
+        if (await getUserId(id) < 0) {
+            return Promise.reject({
+                success: false,
+                message: `User with id ${ id } does not exists`
+            });
+        }
+
+        if (user.username !== userParam.username && await User.findOne({ 
+            where: { 
+                username: userParam.username
+                // [Op.or]: [{
+                //     username: userParam.username, 
+                //     email: userParam.email 
+                // }]
+            }
+        })) {
+            return Promise.reject({
+                success: false,
+                message: `Username or Email already in use`
+            });
+        }
+    
+        // hash password if it was entered
+        if (userParam.password) {
+            const salt = bcrypt.genSaltSync();
+            userParam.password = bcrypt.hashSync(userParam.password, salt);
+        }
+
+        // If payload contains roles
+        let statusMessages = [];
+        if (userParam.roles) {
+            const nextRoles = await getUserRoles(userParam.roles, res);
+            const prevRoles = await getUserUnAssignedRoles(userParam.roles, res);
+            
+            if (prevRoles.length > 0) {
+                statusMessages.push(await user.removeRole(prevRoles).then(() => ({
+                    success: true,
+                    message: 'Previously assigned roles successfully deleted'
+                })))
+            }
+
+            if (nextRoles.length > 0) {
+                statusMessages.push(await user.addRole(nextRoles).then(() => ({
+                    success: true,
+                    message: 'New roles successfully assigned'
+                })))
+            }
+        }
+
+        await user.update(userParam);
+
+        // reached thus far, user updated
+        statusMessages.push({
+            success: true,
+            message: "User successfully updated"
+        });
+
+        return await user.reload()
+            .then(user => user ? 
+                res.status(Status.STATUS_OK).send(statusMessages) : 
+                res.status(Status.STATUS_INTERNAL_SERVER_ERROR).send({
+                    success: false,
+                    message: 'User account failed to update. Try again.'
+                })
+            );
+    },
 
     accountRecovery,
 
@@ -163,6 +229,25 @@ module.exports = {
 
     getByIdMongooseUse: async (id) => await User.findById(id)
 };
+
+const userExists = async (username, res) => {
+    if (await User.findOne({
+        where: { username: username }
+    })) {
+        return res.status(Status.STATUS_CONFLICT).send({
+            success: false,
+            message: `The username ${username} is already taken`
+        })
+    }
+}
+
+async function getUserId(id) {
+    return await User.findOne({
+        where: { _id: id }
+    })
+    .then(({ dataValues: { id }}) => id)
+    .catch(error => error ? -1 : -1)
+}
 
 const getUserRoles = async (roles, res) => {
     return await Role.findAll({ attributes: ['id', 'name'] })
@@ -177,6 +262,39 @@ const getUserRoles = async (roles, res) => {
         return Object.entries(roles)
             .map(role => {
                 if (role[1]) return role[0]
+                else return
+            })
+            .map(role => {
+                if (role) {
+                    for (let index = 0; index < _roles.length; index++) {
+                        if(role === _roles[index].name) {
+                            return _roles[index].id
+                        }
+                    }
+                }
+            }).filter(role => role!==null && role!==undefined)
+    }).catch(error => {
+        console.log(error)
+        res.status(Status.STATUS_INTERNAL_SERVER_ERROR).send({
+            success: false,
+            message: error
+        })
+    })
+}
+
+const getUserUnAssignedRoles = async (roles, res) => {
+    return await Role.findAll({ attributes: ['id', 'name'] })
+    .then(_roles => {
+        if(!_roles) {
+            return res.status(Status.STATUS_NOT_FOUND).send({
+                success: false,
+                message: `Not user roles created yet.`
+            })
+        }
+
+        return Object.entries(roles)
+            .map(role => {
+                if (!role[1]) return role[0]
                 else return
             })
             .map(role => {
@@ -363,32 +481,4 @@ function accountRecovery({ body }, res, next) {
             body.email +"). Please try again" 
         }));
     });
-}
-
-async function update(id, userParam) {
-    let payloadHasRoles = false
-    let user = await User.findById(id);
-    // validate
-    if (!user) throw 'User not found';
-    if (user.username !== userParam.username && await User.findOne({ username: userParam.username })) {
-        throw 'Username "' + userParam.username + '" is already taken';
-    }
-
-    // hash password if it was entered
-    if (userParam.password) {
-        userParam.hash = bcrypt.hashSync(userParam.password, 10);
-    }
-    let newRoles = {}
-    if (userParam.roles){
-        payloadHasRoles = true
-        newRoles = Object.assign(user.roles, userParam.roles)
-    }
-
-    const {roles, ...minusRoles} = userParam
-    // copy userParam properties to user
-    Object.assign(user, minusRoles, payloadHasRoles ? {roles: newRoles} : {})
-    
-    await user.save()
-    const { hash, ...userWithoutHash } = user.toObject();
-    return {user: userWithoutHash}
 }
