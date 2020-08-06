@@ -5,7 +5,6 @@ const cors = require('cors')
 const logger = require('morgan');
 
 const session = require('express-session')
-// const MongoStore = require('connect-mongo')(session)
 
 if (process.env.NODE_ENV !== 'production'){
     require('dotenv').config()
@@ -17,9 +16,6 @@ const users = require('./components/users')
 const contacts = require('./components/contacts')
 const categories = require('./components/categories')
 const stakeHolders = require('./components/stakeholders/index')
-
-//const routes = require('./routes')
-// const db = mongoose.connection;
 
 const app = express()
 
@@ -39,8 +35,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cors())
 app.use(logger('dev'))
 
-//app.use(routes)
-// app.use(helmet())
+app.use(helmet())
 app.use('/stakeholders', stakeHolders)
 app.use('/categories', categories)
 app.use('/contacts', contacts)
@@ -56,9 +51,6 @@ app.use((error, req, res, next) => {
     return res.status(422).json(error)
 })
 
-// db.on('error', console.error.bind(console, 'connection error:'))
-// db.once('open', () =>  console.info('MongoDB successfully connected!'));
-
 const PORT = process.env.PORT || '8083';
 const HOSTNAME = '127.0.0.1';
 
@@ -69,12 +61,7 @@ app.get('/', function (req, res) {
 })
 
 app.listen(PORT, () => {
-    console.log(`Server running at http://${HOSTNAME}:${PORT}`) 
-    // mongoose.connect(`mongodb://${HOSTNAME}/admin`, { 
-    //     useNewUrlParser: true, 
-    //     useUnifiedTopology: true,
-    //     useCreateIndex:true,
-    // })
+    console.log(`Server running at http://${HOSTNAME}:${PORT}`)
 })
 
 module.exports = app

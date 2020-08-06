@@ -9,7 +9,6 @@ const Status = require('../status.codes');
 const nodemailer = require("nodemailer");
 const smtpTransport = require('nodemailer-smtp-transport');
 const UIDGenerator = require('../uuid.generate');
-const { Op } = require('sequelize');
 
 const attributes = [ 
     '_id', 'username', 
@@ -19,18 +18,39 @@ const attributes = [
 ]
 
 module.exports = {
-    authenticate: async ({body: { username, password}, session}) => {
-        const user = await User.findOne({ username });
-        if (user && bcrypt.compareSync(password, user.hash)) {
-            const { hash, ...userWithoutHash } = user.toObject();
-            const token = jwt.sign({ sub: user.id }, config.secret);
-            
-            if (!session.user) {
-                session.user = { ...userWithoutHash }
-            }
-              
-            return { ...userWithoutHash, token};
+    authenticate: async ({body: { username, password}, session}, res) => {
+        const user = await User.findOne({
+            where: { username: username }
+        })
+
+        if (!user) {
+            return Promise.reject(({
+                success: false,
+                message: 'Username or password is incorrect',
+            }))
         }
+
+        return await comparePassword(password, user.password, (err, isMatch) => {
+            if (isMatch) {
+                const { id, password,...rest } = user.dataValues;
+                const token = jwt.sign({ 
+                    sub: id
+                }, config.secret);
+                
+                if (!session.user) {
+                    session.user = { ...rest }
+                    session.user.token = token;
+                }
+
+                return res.status(Status.STATUS_OK)
+                    .send(Object.assign(rest, { token: token }))
+            }
+
+            return Promise.reject(({
+                success: false,
+                message: 'Username or password is incorrect'
+            }))
+        });
     },
 
     createRoles: async ({ params, body: { roles } , session}, res, next) => {
@@ -102,29 +122,6 @@ module.exports = {
             })
     },
 
-    login: async ({body: { username, password}, session}) => {
-        // const data = 
-        return await User.findOne({ 
-            username: username 
-        }, function(err, user) {
-            
-            if (!user || err) return null;
-    
-            return user.comparePassword(password, user.hash, function(err, isMatch) {
-                if (isMatch) {
-                    const { hash, ...userWithoutHash } = user.toObject();
-                    const token = jwt.sign({ sub: user.id }, config.secret);
-                    
-                    if (!session.user) {
-                        session.user = { ...userWithoutHash }
-                    }
-    
-                    return {...userWithoutHash, token};
-                }
-            });
-        });
-    },
-
     getAll: async () => await User.findAll({ 
         attributes: attributes,
         include: [{
@@ -175,8 +172,8 @@ module.exports = {
     
         // hash password if it was entered
         if (userParam.password) {
-            const salt = bcrypt.genSaltSync();
-            userParam.password = bcrypt.hashSync(userParam.password, salt);
+            // const salt = bcrypt.genSaltSync();
+            userParam.password = bcrypt.hashSync(userParam.password, 10);
         }
 
         // If payload contains roles
@@ -225,10 +222,15 @@ module.exports = {
     delete: async id => await User.destroy({ 
         where: { _id: id },
         attributes: attributes
-    }),
-
-    getByIdMongooseUse: async (id) => await User.findById(id)
+    })
 };
+
+const comparePassword = async (candidatePassword, hash, cb) => {
+    return bcrypt.compare(candidatePassword, hash, (err, isMatch) => {
+        if (err) return cb(err);
+        return cb(null, isMatch);
+    });
+}
 
 const userExists = async (username, res) => {
     if (await User.findOne({
@@ -343,12 +345,12 @@ async function accountReset({ body, params, headers }, res, next) {
                         }))
                     }
 
-                    user.hash = bcrypt.hashSync(body.password, 10);
+                    user.password = bcrypt.hashSync(body.password, 10);
                     // user.resetPasswordToken = undefined;
                     // user.resetPasswordExpires = undefined;
 
                     user.save(function(err) {
-                        const { hash, ...userWithoutHash } = user.toObject();
+                        const { password, ...userWithoutHash } = user;
                         const token = jwt.sign({ sub: user.id }, config.secret);
 
                         done(err, { ...userWithoutHash, token})
