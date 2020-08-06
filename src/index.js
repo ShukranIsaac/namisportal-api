@@ -23,11 +23,6 @@ app.use(session({
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: false,
-    // store: new MongoStore({
-    //     mongooseConnection: db,
-    //     ttl: 5 * 24 * 60 * 60,
-    //     touchAfter: 24 * 3600 // time period in seconds
-    // })
 }))
 
 app.use(bodyParser.json())
