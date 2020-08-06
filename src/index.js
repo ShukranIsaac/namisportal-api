@@ -71,7 +71,7 @@ app.get('/', function (req, res) {
 
 app.listen(PORT, () => {
     console.log(`Server running at http://${HOSTNAME}:${PORT}`) 
-    mongoose.connect(`mongodb://${HOSTNAME}/admin`, { 
+    mongoose.connect(`mongodb://${HOSTNAME}/test`, { 
         useNewUrlParser: true, 
         useUnifiedTopology: true,
         useCreateIndex:true,
