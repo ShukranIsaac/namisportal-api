@@ -53,7 +53,7 @@ module.exports = {
             }).then(categories => {
                 res.status(Status.STATUS_OK)
                     .send(categories.map(({ dataValues: {
-                        categoryId, id, ...rest
+                        category, id, ...rest
                     } }) => rest))
             }).catch(error => {
                 console.log(error)

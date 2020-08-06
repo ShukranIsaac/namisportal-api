@@ -46,22 +46,27 @@ function authenticate(req, res, next) {
 function getAll({ }, res, next) {
     userService.getAll()
         .then(users => {
-            // const listOfUsers = users.map(({
-            //     dataValues: {
-            //         roles,
-            //         ...rest
-            //     }
-            // }) => ({
-            //     ...rest,
-            //     roles: roles.reduce((prev, curr) => ({
-            //         [prev.dataValues.name]: true,
-            //         [curr.dataValues.name]: true
-            //     }))
-            // }))
-            // console.log(listOfUsers)
-            return res.json(users)
+            const listOfUsers = users.map(({
+                dataValues: {
+                    roles,
+                    ...rest
+                }
+            }) => ({
+                ...rest,
+                roles: getUserRoles(roles)
+            }))
+            
+            return res.json(listOfUsers)
         })
         .catch(err => next(err))
+}
+
+function getUserRoles(roles) {
+    return JSON.parse(JSON.stringify(Object.entries(roles)
+    .reduce((prev, curr) => ({
+        ...prev,
+        [curr[1].name]: true
+    }), {})))
 }
 
 function getCurrent(req, res, next) {
