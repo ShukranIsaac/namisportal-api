@@ -6,6 +6,16 @@ const attributes = {
     exclude: ['id']
 };
 
+const subCategories = category => category.subCategories.map(({ 
+    dataValues: {
+        category, id, subCategories,...restSub
+    } 
+})=> {
+    return Object.assign(restSub, { 
+        subCategories: subCategories.map(({ _id })=>_id) 
+    })
+})
+
 module.exports = {
     all: async ({ name }, res, next) => {
         if (name !== undefined && name !== null) {
@@ -14,6 +24,17 @@ module.exports = {
                     include: [{
                         model: Category,
                         as: 'subCategories',
+                        include: [{
+                            model: Category,
+                            as: 'subCategories',
+                            all: true,
+                            attributes: {
+                                exclude: ['id']
+                            },
+                            through: {
+                                attributes: []
+                            }
+                        }],
                         all: true,
                         attributes: {
                             exclude: ['id']
@@ -23,17 +44,25 @@ module.exports = {
                         }
                     }]
                 })
-                .then(({ dataValues: {category, id, ...rest} }) => rest 
-                    ? res.json(rest) 
-                    : res.status(404).send({
-                        success: false,
-                        message: 'No category with name: ' + name
+                .then(response => {
+                    if (!response) {
+                        return res.status(Status.STATUS_NOT_FOUND).send({
+                            success: false,
+                            message: 'No category with name: ' + name
+                        })
                     }
-                )).catch(error => {
+
+                    const { dataValues: {
+                        category, id, ...rest} 
+                    } = response;
+
+                    return res.status(Status.STATUS_OK)
+                    .send(Object.assign(rest, { subCategories: subCategories(rest) }))
+                }).catch(error => {
                     console.log(error)
-                    res.status(400).send({
+                    res.status(Status.STATUS_BAD_REQUEST).send({
                         success: false,
-                        error,
+                        message: error,
                     })
                 })
         } else {
@@ -54,7 +83,13 @@ module.exports = {
                 res.status(Status.STATUS_OK)
                     .send(categories.map(({ dataValues: {
                         category, id, ...rest
-                    } }) => rest))
+                    } }) => {
+                        return Object.assign(rest, { 
+                            subCategories: rest.subCategories.map(({
+                                _id, ...rest
+                            })=>_id) 
+                        });
+                    }))
             }).catch(error => {
                 console.log(error)
                 res.status(400).send({
@@ -64,6 +99,8 @@ module.exports = {
             })
         }
     },
+
+    subCategories: subCategories,
 
     getById: async (id) => await Category.findOne({
         where: { _id: id },
@@ -79,7 +116,29 @@ module.exports = {
             },
             through: {
                 attributes: []
-            }
+            },
+            include: [{
+                model: Category,
+                as: 'subCategories',
+                include: [{
+                    model: Category,
+                    as: 'subCategories',
+                    all: true,
+                    attributes: {
+                        exclude: ['id']
+                    },
+                    through: {
+                        attributes: []
+                    }
+                }],
+                all: true,
+                attributes: {
+                    exclude: ['id']
+                },
+                through: {
+                    attributes: []
+                }
+            }],
         }]
     }),
 
@@ -128,7 +187,11 @@ module.exports = {
             res.status(Status.STATUS_OK)
                 .send(categories.map(({ dataValues: {
                     category, id, ...rest
-                } }) => rest))
+                } }) => Object.assign(rest, { 
+                    subCategories: rest.subCategories.map(({
+                        _id, ...rest
+                    })=>_id) 
+                })))
         }).catch(error => {
             console.log(error)
             res.status(400).send({
@@ -145,9 +208,9 @@ module.exports = {
                 .lean()
     ),
 
-    getByIdMongooseUse: async (id) => (
-        await Category.findById(id)
-    ),
+    getCategoryById: async (id) => await Category.findOne({
+        where: { _id: id }
+    }),
 
     createOne: async function({
         body: {
@@ -214,9 +277,7 @@ module.exports = {
             })
             .catch(error => {
                 console.log(error)
-                return new Promise((resolve, reject) => {
-                    return reject(error.errors)
-                })
+                return Promise.reject(error.errors)
             })
 
             // Sub Category id just created
@@ -238,14 +299,26 @@ module.exports = {
 
     delete: async (id) => { 
         try {
-            const category = await Category.findById(id)
-            
-            const removed = await deleteCat(category)
-
-            return Promise.resolve(removed)
-
+            if (await Category.findOne({ where: { _id:id }})) {
+                await Category.destroy({
+                    where: { _id: id }
+                })
+    
+                return Promise.resolve({
+                    success: true,
+                    message: "Resource successfully deleted."
+                })   
+            } else {
+                return Promise.resolve({
+                    success: false,
+                    message: `Resource with id ${ id } does not exist.`
+                }) 
+            }
         } catch (error) {
-            return Promise.reject(error)
+            return Promise.reject({
+                success: false,
+                message: error
+            })
         }
     },
     
@@ -258,21 +331,10 @@ module.exports = {
     },                                                                                                  
 }
 
-async function getCategoryId(id) {
+const getCategoryId = async id => {
     return await Category.findOne({
         where: { _id: id }
     })
     .then(({ dataValues: { id }}) => id)
     .catch(error => Promise.reject(error))
-}
-
-function deleteCat(category){
-    return new Promise((resolve, reject) => {
-        category.delete((error, removed) => {
-            if (error) return reject(error)
-
-            resolve(removed)
-        } )
-
-    })
 }

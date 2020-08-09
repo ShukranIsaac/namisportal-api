@@ -7,25 +7,6 @@ const fileServise = require('../files/service')
 const fileUploadMiddleware = require('../files/upload.middleware')
 const Status = require('../status.codes')
 
-router.get('/', getAllCategories);
-router.get('/:uid', getOneCategory);
-router.get('/:uid/documents', getDocuments)
-router.get('/:uid/sub-categories', getSubCategories)
-router.get('/:uid/main-sub-category', getMainSubCategory)
-router.get('/:uid/by-child', getByChild)
-
-router.post('/', /*jwtm,*/ addCategory)
-router.use('/:uid/files', /*jwtm,*/ fileUploadMiddleware)
-router.post('/:uid/sub-categories', /*jwtm,*/ addSubCategory)
-router.post('/:uid/main-sub-category', /*jwtm,*/ addMainSubcategory)
-router.patch('/:uid/', /*jwtm,*/ updateCategory)
-router.delete('/:uid/', /*jwtm,*/ deleteCategory)
-
-router.post('/:uid/documents', addDocument)
-router.delete('/:uid/documents/:docId', removeDocument)
-
-module.exports = router
-
 async function removeDocument(req, res, next){
     const {params: {uid, docId}} = req
     try {
@@ -67,14 +48,39 @@ function getAllCategories({query}, res, next) {
     return categoriesService.all(query, res, next);
 }
 
-function getOneCategory({params: {uid}}, res, next)  {
-    return categoriesService.getById(uid)
-        .then(({ dataValues: { category, ...rest } }) => res.json(rest))
-        .catch(err => next(err))
+async function getOneCategory({params: {uid}}, res, next)  {
+    return await categoriesService.getById(uid)
+        .then(response => {
+            if (!response) {
+                return res.status(Status.STATUS_NOT_FOUND).send({
+                    success: false,
+                    message: 'No category with id: ' + uid
+                })
+            }
+
+            const { dataValues: { category, id, ...rest } } = response;
+
+            // TODO: Finish here
+            const cateSubs = categoriesService.subCategories(rest)
+            // const subs = cateSubs.subCategories.map(({
+            //     dataValues: { category, id, ...rest }
+            // })=> Object.assign(rest, {
+            //     subCategories: categoriesService.subCategories(rest)
+            // }));
+
+            return res.status(Status.STATUS_OK)
+                .send(Object.assign(rest, { 
+                    subCategories: cateSubs 
+                }))
+        })
+        .catch(err => res.status(Status.STATUS_INTERNAL_SERVER_ERROR).send({
+            success: false,
+            message: err
+        }))
 }
 
-function getDocuments({params: {uid}}, res, next)  {
-    return categoriesService.getDocuments(uid)
+async function getDocuments({params: {uid}}, res, next)  {
+    return await categoriesService.getDocuments(uid)
         .then( categories => res.json(categories.documents))
         .catch( err => next(err))
 }
@@ -83,41 +89,62 @@ function getSubCategories({params: {uid}}, res, next)  {
     categoriesService.getSubCategories(uid, res);
 }
 
-function getMainSubCategory({params: {uid}}, res, next)  {
-    return categoriesService.getMainSubCategory(uid)
+async function getMainSubCategory({params: {uid}}, res, next)  {
+    return await categoriesService.getMainSubCategory(uid)
         .then( category => res.json(category.mainSubCategory))
         .catch( err => next(err))
 }
 
-function deleteCategory({params: {uid}}, res, next)  {
-    return categoriesService.delete(uid)
-        .then( category => res.json(category))
+async function deleteCategory({params: {uid}}, res, next)  {
+    return await categoriesService.delete(uid)
+        .then(response => res.json(response))
         .catch( err => next(err))
 }
 
-function updateCategory({params: {uid}, body}, res, next)  {
-    return categoriesService.getByIdMongooseUse(uid)
-        .then( category => {
-            categoriesService.doUpdate(category, body)
-            .then( updatedCat => res.json(updatedCat))
-            .catch( err => next(err))
+async function updateCategory({params: {uid}, body}, res, next)  {
+    return await categoriesService.getCategoryById(uid)
+        .then(category => {
+            // categoriesService.doUpdate(category, body)
+            //     .then(updatedCat => res.json(updatedCat))
+            //     .catch(err => next(err))
+            if (!category) {
+                return res.status(Status.STATUS_NOT_FOUND).send({
+                    success: false,
+                    message: 'No category with id: ' + uid
+                })
+            }
+            doUpdate(category, body, res);
+        }).catch(err => next(err))
+}
+
+async function doUpdate(category, {
+    name, shortName, about
+}, res) {
+    await category.update({ name, shortname: shortName, about })
+
+    return await category.reload()
+
+    .then(_category => _category ? 
+        res.status(Status.STATUS_OK).send({
+            success: true,
+            message: "Category successfully updated."
+        }) : 
+        res.status(Status.STATUS_INTERNAL_SERVER_ERROR).send({
+            success: false,
+            message: 'Category resource failed to update. Try again.'
         })
-        .catch( err => next(err))
+    );
 }
 
-function addCategory(req, res, next){
-    return categoriesService.createOne(req, res, next);
-}
+const addCategory = (req, res, next) => categoriesService.createOne(req, res, next);
 
-function addFile({params: uid}, res, next){
-    return categoriesService.createOne(body)
-        .then( newCategory => res.json(newCategory) )
-        .catch( err => next(err))
-}
+const addFile = async ({params: uid}, res, next) => await categoriesService
+    .createOne(body).then( newCategory => res.json(newCategory) )
+    .catch( err => next(err))
 
-function addMainSubcategory({params: {uid}, body}, res, next){
+async function addMainSubcategory({params: {uid}, body}, res, next){
     if (body.childUid !== undefined){
-        return categoriesService.getByIdMongooseUse(uid)
+        return await categoriesService.getByIdMongooseUse(uid)
             .then((parent) => {
                 if (parent === null)
                     throw 'Parent category not found'
@@ -137,11 +164,11 @@ function addMainSubcategory({params: {uid}, body}, res, next){
     }
 }
 
-function addSubCategory({params: {uid}, body}, res, next){
+async function addSubCategory({params: {uid}, body}, res, next){
     if (body.childUid !== undefined){
         //no need to create new category if category to be assigned already exists
 
-        return categoriesService.getByIdMongooseUse(uid)
+        return await categoriesService.getById(uid)
             .then(parentCategory => {
                 if (parentCategory === null)
                     throw 'Parent category not found'
@@ -158,7 +185,7 @@ function addSubCategory({params: {uid}, body}, res, next){
     }
     else{
         // create new category if category to be assigned does not exist
-        categoriesService.createSubCategory(uid, body, res)
+        await categoriesService.createSubCategory(uid, body, res)
             .catch(error => {
                 console.log(error)
                 res.status(Status.STATUS_INTERNAL_SERVER_ERROR)
@@ -192,3 +219,22 @@ async function addMainChild(parent, child){
         throw `${child.shortName} is already the main sub-category`
     }
 }
+
+router.get('/', getAllCategories);
+router.get('/:uid', getOneCategory);
+router.get('/:uid/documents', getDocuments)
+router.get('/:uid/sub-categories', getSubCategories)
+router.get('/:uid/main-sub-category', getMainSubCategory)
+router.get('/:uid/by-child', getByChild)
+
+router.post('/', /*jwtm,*/ addCategory)
+router.use('/:uid/files', /*jwtm,*/ fileUploadMiddleware)
+router.post('/:uid/sub-categories', /*jwtm,*/ addSubCategory)
+router.post('/:uid/main-sub-category', /*jwtm,*/ addMainSubcategory)
+router.patch('/:uid/', /*jwtm,*/ updateCategory)
+router.delete('/:uid/', /*jwtm,*/ deleteCategory)
+
+router.post('/:uid/documents', addDocument)
+router.delete('/:uid/documents/:docId', removeDocument)
+
+module.exports = router
