@@ -10,11 +10,11 @@ router.get('/', getAllNews)
 router.get('/:uid', getOneNews)
 router.get('/:uid/images', getImages)
 
-router.post('/', /*jwtm,*/ addNews)
-router.use('/:uid/files', /*jwtm,*/ fileUploadMiddleware)
-router.put('/:uid/', /*jwtm,*/ updateNews)
-router.patch('/:uid/', /*jwtm,*/ updateNews)
-router.delete('/:uid/', /*jwtm,*/ deleteNews)
+router.post('/', jwtm, addNews)
+router.use('/:uid/files', jwtm, fileUploadMiddleware)
+router.put('/:uid/', jwtm, updateNews)
+router.patch('/:uid/', jwtm, updateNews)
+router.delete('/:uid/', jwtm, deleteNews)
 
 module.exports = router
 
