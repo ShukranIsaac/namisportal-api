@@ -40,11 +40,11 @@ Role.belongsToMany(User, { through: UserRole, as: 'users', foreignKey: 'roleid' 
 
 User.belongsToMany(Role, { through: UserRole, as: 'roles', foreignKey: 'userid' });
 
-// (async () => {
-//     await PostgresORM.sync()
-//     .then(() => console.log('Tables created successfully'))
-//     .catch(error => console.log('Failed to create database tables: ', error))
-// })()
+(async () => {
+    await PostgresORM.sync()
+    .then(() => console.log('Tables created successfully'))
+    .catch(error => console.log('Failed to create database tables: ', error))
+})()
 
 module.exports = {
     User,

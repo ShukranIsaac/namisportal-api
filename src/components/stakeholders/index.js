@@ -11,15 +11,15 @@ router.get('/:uid', getOneStakeholder)
 router.post('/', addStakeholder)
 router.patch('/:uid', updateStakeholder)
 router.delete('/:uid', deleteStakeholder)
-router.use('/:uid/files', jwtm, fileUploadMiddleware)
+router.use('/:uid/files', /*jwtm,*/ fileUploadMiddleware)
 
 module.exports = router
 
-function getAllStakeholders(req, res, next)  {
+async function getAllStakeholders(req, res, next)  {
     const { baseUrl, query: {name}} = req
-    return stakeholderService.getAll(name)
-        .then( stakeholders => res.json(stakeholders))
-        .catch( err => next(err))
+    return await stakeholderService.getAll(name)
+        .then(stakeholders => res.json(stakeholders))
+        .catch(err => next(err))
 }
 
 function getOneStakeholder({params: {uid}}, res, next)  {

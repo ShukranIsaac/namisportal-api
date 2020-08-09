@@ -5,7 +5,7 @@ module.exports = {
         if (name !== undefined){
             return await Stakeholder.findOne({name}).lean()
         }else{
-            return await Stakeholder.find({}).lean()
+            return await Stakeholder.findAll()
         }
     },
     getById: async (id) => await Stakeholder.findById(id).lean(),
