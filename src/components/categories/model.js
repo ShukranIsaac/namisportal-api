@@ -6,9 +6,9 @@ const SubCategory = require('./sub.model');
 const Category = PostgresORM.define('categories', {
     _id: { type: Sequelize.STRING, unique: true, allowNull: false },
     name: { type: Sequelize.STRING, unique: true, allowNull: false },
-    about: { type: Sequelize.STRING, allowNull: false },
+    about: { type: Sequelize.TEXT, allowNull: false },
     shortname: { type: Sequelize.STRING, allowNull: false },
-    content: {type: Sequelize.STRING, allowNull: true}
+    content: {type: Sequelize.TEXT, allowNull: true}
 });
 
 Category.belongsToMany(Category, { 

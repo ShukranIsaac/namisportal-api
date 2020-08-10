@@ -17,39 +17,72 @@ const attributes = [
     'resetPasswordToken'
 ]
 
+const getRoles = (roles, all) => {
+    const others = Object.entries(all)
+        .reduce((prev, curr) => ({
+            ...prev, 
+            [curr[1].name]: false 
+        }), {})
+
+    const _others = Object.entries(roles)
+        .reduce((prev, curr) => ({
+            ...prev, 
+            [curr[1].name]: true 
+        }), {})
+
+    return Object.assign(others, _others);
+}
+
 module.exports = {
+    getRoles: getRoles,
+
     authenticate: async ({body: { username, password}, session}, res) => {
         const user = await User.findOne({
-            where: { username: username }
+            where: { username: username },
+            include: [{
+                model: Role,
+                as: 'roles',
+                all: true,
+                attributes: {
+                    exclude: ['id']
+                },
+                through: {
+                    attributes: [],
+                }
+            }]
         })
 
         if (!user) {
-            return Promise.reject(({
+            return Promise.reject({
                 success: false,
                 message: 'Username or password is incorrect',
-            }))
+            })
         }
 
-        return await comparePassword(password, user.password, (err, isMatch) => {
+        return await comparePassword(password, user.password, async (err, isMatch) => {
             if (isMatch) {
-                const { id, password,...rest } = user.dataValues;
-                const token = jwt.sign({ 
-                    sub: id
-                }, config.secret);
+                const { id, password, roles,...rest } = user.dataValues;
+                const token = jwt.sign({ sub: id }, config.secret);
                 
                 if (!session.user) {
                     session.user = { ...rest }
                     session.user.token = token;
                 }
 
+                const all = await Role.findAll();
+
                 return res.status(Status.STATUS_OK)
-                    .send(Object.assign(rest, { token: token }))
+                    .send(Object.assign(rest, { 
+                        roles: getRoles(roles, all),
+                        token: token, 
+                    }))
             }
 
-            return Promise.reject(({
-                success: false,
-                message: 'Username or password is incorrect'
-            }))
+            return res.status(Status.STATUS_NOT_FOUND)
+                .send({
+                    success: false,
+                    message: 'Username or password is incorrect'
+                })
         });
     },
 
@@ -122,7 +155,39 @@ module.exports = {
             })
     },
 
-    getAll: async () => await User.findAll({ 
+    getAll: async () => {
+        const users = await User.findAll({ 
+            attributes: attributes,
+            include: [{
+                model: Role,
+                as: 'roles',
+                all: true,
+                attributes: {
+                    exclude: ['id']
+                },
+                through: {
+                    attributes: [],
+                }
+            }]
+        })
+        
+        const all = await Role.findAll();
+
+        if (users) {
+            return users.map(({
+                dataValues: {
+                    roles,
+                    ...rest
+                }
+            }) => ({
+                ...rest,
+                roles: getRoles(roles, all)
+            }))
+        }
+    },
+
+    getById: async (id) => await User.findOne({ 
+        where: { _id: id }, 
         attributes: attributes,
         include: [{
             model: Role,
@@ -135,11 +200,6 @@ module.exports = {
                 attributes: [],
             }
         }]
-    }),
-
-    getById: async (id) => await User.findOne({ 
-        where: { _id: id }, 
-        attributes: attributes
     }),
 
     update: async (id, userParam, res) => {
@@ -155,19 +215,21 @@ module.exports = {
             });
         }
 
-        if (user.username !== userParam.username && await User.findOne({ 
-            where: { 
-                username: userParam.username
-                // [Op.or]: [{
-                //     username: userParam.username, 
-                //     email: userParam.email 
-                // }]
+        if(userParam.username) {
+            if (user.username !== userParam.username && await User.findOne({ 
+                where: { 
+                    username: userParam.username
+                    // [Op.or]: [{
+                    //     username: userParam.username, 
+                    //     email: userParam.email 
+                    // }]
+                }
+            })) {
+                return Promise.reject({
+                    success: false,
+                    message: `Username or Email already in use`
+                });
             }
-        })) {
-            return Promise.reject({
-                success: false,
-                message: `Username or Email already in use`
-            });
         }
     
         // hash password if it was entered
@@ -205,14 +267,35 @@ module.exports = {
             message: "User successfully updated"
         });
 
-        return await user.reload()
-            .then(user => user ? 
-                res.status(Status.STATUS_OK).send(statusMessages) : 
-                res.status(Status.STATUS_INTERNAL_SERVER_ERROR).send({
+        const all = await Role.findAll();
+
+        return await User.findOne({
+            where: { _id: user._id }, 
+            attributes: attributes,
+            include: [{
+                model: Role,
+                as: 'roles',
+                all: true,
+                attributes: {
+                    exclude: ['id']
+                },
+                through: {
+                    attributes: [],
+                }
+            }]
+        })
+
+        .then(user => {
+            const { dataValues: { roles, ...rest } } = user;
+        
+            return user ? res.json({
+                    ...rest,
+                    roles: getRoles(roles, all)
+                }) : res.status(Status.STATUS_NOT_FOUND).send({
                     success: false,
                     message: 'User account failed to update. Try again.'
                 })
-            );
+        });
     },
 
     accountRecovery,

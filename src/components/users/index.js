@@ -3,6 +3,7 @@ const Router = express.Router();
 const userService = require('./service');
 const jwtm = require('../../middlewares/jwt');
 const Status = require('../status.codes');
+const { Role } = require('./user.model');
 
 // routes
 Router.post('/authenticate', authenticate);
@@ -45,28 +46,8 @@ function authenticate(req, res, next) {
 
 function getAll({ }, res, next) {
     userService.getAll()
-        .then(users => {
-            const listOfUsers = users.map(({
-                dataValues: {
-                    roles,
-                    ...rest
-                }
-            }) => ({
-                ...rest,
-                roles: getUserRoles(roles)
-            }))
-
-            return res.json(listOfUsers)
-        })
+        .then(users => res.status(Status.STATUS_OK).send(users))
         .catch(err => next(err))
-}
-
-function getUserRoles(roles) {
-    return JSON.parse(JSON.stringify(Object.entries(roles)
-    .reduce((prev, curr) => ({
-        ...prev,
-        [curr[1].name]: true
-    }), {})))
 }
 
 function getCurrent(req, res, next) {
@@ -82,12 +63,21 @@ function getCurrent(req, res, next) {
     }
 }
 
-function getById(req, res, next) {
+async function getById(req, res, next) {
+    const all = await Role.findAll();
+    
     userService.getById(req.params.id)
-        .then(user => user ? res.json(user.dataValues) : res.status(404).send({
-            success: false,
-            message: 'No resource with id: ' + req.params.id,
-        }))
+        .then(user => {
+            const { dataValues: { roles, ...rest } } = user;
+            
+            return user ? res.json({
+                ...rest,
+                roles: userService.getRoles(roles, all)
+            }) : res.status(404).send({
+                success: false,
+                message: 'No resource with id: ' + req.params.id,
+            })
+        })
         .catch(err => next(err));
 }
 
