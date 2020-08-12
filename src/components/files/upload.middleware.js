@@ -9,7 +9,6 @@ const stakeholdersServise = require('../stakeholders/service')
 const unzip = require('unzip')
 const zlib = require('zlib');
 
-
 const MAGIC_NUMBERS = {
     jpg: 'ffd8ffe0',
     jpg1: 'ffd8ffe1',
@@ -41,45 +40,40 @@ function checkMagicNumbers(magic) {
         return true
 }
 
-
 function uploadAndMap(req, res){
     return new Promise((resolve, reject) => {
         try{
-            
             const url = req.baseUrl.split('/')[1]
 
             if (url === 'stakeholders'){
-                stakeholdersServise.getByIdMongooseUse(req.params.uid)
+                stakeholdersServise.getById(req.params.uid)
                 .then(async stakeholder => {
                     const file = await uploadTheFile(req, res)
-
-                    fileService.createOne(file)
-                        .then( ({filename}) => {
-                            stakeholder.image = `/files/images/${filename}`
-                            resolve(stakeholder.save())
-                        })
-                        .catch(err => reject(err))
+                    console.log(file)
+                    // fileService.createOne(file)
+                    //     .then(( {filename}) => {
+                    //         stakeholder.image = `/files/images/${filename}`
+                    //         resolve(stakeholder.save())
+                    //     })
+                    //     .catch(err => reject(err))
                 }) 
-            }
-            else if(url === 'categories') {
-                categoriesService.getByIdMongooseUse(req.params.uid)
-                .then(async category => {
-                    const file = await uploadTheFile(req, res)
-
-                    fileService.createOne(file)
-                        .then( ({_id}) => {
-                            category.documents.push({_id})
-                            resolve(category.save())
-                        })
-                        .catch(err => reject(err))
-                })
-            }
-            else{
+            } else if(url === 'categories') {
+                categoriesService.getById(req.params.uid)
+                    .then(async category => {
+                        const file = await uploadTheFile(req, res)
+                        
+                        fileService.createOne(file)
+                            .then(({ dataValues: { _id } }) => {
+                                category.documents.push({_id})
+                                resolve(category.save())
+                            })
+                            .catch(err => reject(err))
+                    })
+            } else {
                 reject(new Error('Invalid URL, please check'))
             }
             
-        }
-        catch(error){
+        } catch (error){
             reject(error)
         }  
     })
@@ -96,20 +90,13 @@ async function updateFile(req, res){
             return fileService.update(document, fileWOname)
                 .then(updatedFile => Promise.resolve(updatedFile))
                 .catch(error => Promise.reject(error))
-    
+
         } catch (error) {
             return Promise.reject(error)
         }
-
-    }
-
-    else{
-        
+    } else {
         try {
-            const document = await fileService.getByIdMongooseUse(req.params.uid)
-
-            // console.log(document)
-            // console.log(req.body)
+            const document = await fileService.getById(req.params.uid)
 
             return fileService.update(document, req.body)
                 .then(updatedFile => Promise.resolve(updatedFile))
@@ -118,10 +105,7 @@ async function updateFile(req, res){
         } catch (error) {
             return Promise.reject(error)
         }
-
     }
-
-  
 }
 
 function uploadTheFile(req, res){
@@ -134,22 +118,19 @@ function uploadTheFile(req, res){
                 }
 
                 const bitmap = fs.readFileSync(destinationDirectory + req.file.filename).toString('hex', 0, 4);
-                console.log(bitmap)
+                
                 if (!checkMagicNumbers(bitmap)) {
                     fs.unlinkSync(destinationDirectory + req.file.filename);
                     reject(new Error('File not valid'))
-                }
-                else{
+                } else {
                     const { path, size, filename } = req.file
 
                     let file = {}
                     if (req.body){
                         const { name, description } = req.body
                         
-                        file = { name, path, size, filename, description}
-                    }
-    
-                    else{
+                        file = { name, path, size, filename, description }
+                    } else {
                         file = { path, size, filename}
                     }
                     

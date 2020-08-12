@@ -1,17 +1,18 @@
 const File = require('./model')
+const UIDGenerator = require('../uuid.generate')
 
 module.exports = {
-    getAll: async (name) =>  await File.find({}).lean(),
-    getById: async (id) => await File.findById(id).populate('categories').lean(),
-    getCategory: async (id) => await File.findById(id).populate('categories').lean(),
-    getByIdMongooseUse: async (id) => await File.findById(id),
-    createOne: async (newFile) => await File.create(newFile),
-    delete: async (id) => await File.findByIdAndDelete(id).lean(),
+    getAll: async () =>  await File.findAll(),
+    getById: async (id) => await File.findById(id),
+    getCategory: async (id) => await File.findById(id),
+    getByIdUse: async (id) => await File.findById(id),
+    createOne: async (newFile) => await File.create({
+        _id: UIDGenerator.UUID(),
+        ...newFile
+    }),
+    delete: async (id) => await File.destroy(id),
     update: async (document, props) => {
-        document.set(props)
-        return await document.save()
+        await document.update(props)
+        return await document.reload();
     }                                                                                      
 }
-
-
-
