@@ -1,0 +1,79 @@
+[{
+  "_id": {
+    "$oid": "5f07133d060247531a6d8f64"
+  },
+  "roles": {
+    "writer": true,
+    "publisher": true,
+    "admin": true
+  },
+  "username": "ShukranIsaac",
+  "firstName": "Isaac",
+  "lastName": "Mwakabira",
+  "createdDate": {
+    "$date": "2020-07-09T12:53:17.207Z"
+  },
+  "hash": "$2a$10$YCYkAZmhM7PH1FroH2qXJOzEVvA4f2J1/dEmRoNfMVtC2oK3OCpoq",
+  "__v": 0,
+  "email": "imwakabira@cc.ac.mw",
+  "resetPasswordExpires": {
+    "$date": "2020-07-21T10:43:28.553Z"
+  },
+  "resetPasswordToken": "1218c64ada0dfa6adc1167e93d2b85ea9e9f591c"
+},{
+  "_id": {
+    "$oid": "5f0727c435b7e0568d21b29f"
+  },
+  "roles": {
+    "writer": true,
+    "publisher": false,
+    "admin": true
+  },
+  "username": "ckanjo",
+  "firstName": "Chipo",
+  "lastName": "Kanjo",
+  "createdDate": {
+    "$date": "2020-07-09T14:20:52.079Z"
+  },
+  "hash": "$2a$10$l8geYL2Dz8MZZ5zde1JPJ.anp40dCHlRjLlmG/JYiDDSJE9HfEs5.",
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "5f07444f777dd95844c4d8ed"
+  },
+  "roles": {
+    "writer": true,
+    "publisher": false,
+    "admin": true
+  },
+  "username": "KMunthali",
+  "firstName": "Kondwani",
+  "lastName": "Munthali",
+  "createdDate": {
+    "$date": "2020-07-09T16:22:39.156Z"
+  },
+  "hash": "$2a$10$0TsJQol5uK3PDCF933WUZ.1c6MHxfUTolTRiakAloHO5UL9mN2zwm",
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "5f11c19488e88f4a0f5a470a"
+  },
+  "roles": {
+    "writer": false,
+    "publisher": false,
+    "admin": true
+  },
+  "username": "JohnDoe",
+  "firstName": "John",
+  "lastName": "Doe",
+  "createdDate": {
+    "$date": "2020-07-17T15:19:48.076Z"
+  },
+  "hash": "$2a$10$Do9kGbkJkxBsar/MLQIJauVSS370Gk36.FzABJe0nEqJdlpt/Yc/.",
+  "__v": 0,
+  "email": "mishukran@gmail.com",
+  "resetPasswordExpires": {
+    "$date": "2020-07-22T21:14:26.345Z"
+  },
+  "resetPasswordToken": "28b94f98d6b31a492e54dc58d029acba050b5708"
+}]

@@ -14,7 +14,7 @@ const attributes = [
     '_id', 'username', 
     ['firstname', 'firstName'], ['lastname', 'lastName'],
     'email', 'resetPasswordExpires',
-    'resetPasswordToken'
+    'resetPasswordToken', 'createdAt'
 ]
 
 const getRoles = (roles, all) => {
@@ -288,10 +288,10 @@ module.exports = {
         .then(user => {
             const { dataValues: { roles, ...rest } } = user;
         
-            return user ? res.json({
-                    ...rest,
-                    roles: getRoles(roles, all)
-                }) : res.status(Status.STATUS_NOT_FOUND).send({
+            return user ? res.json({ user: {
+                ...rest,
+                roles: getRoles(roles, all)
+            }}) : res.status(Status.STATUS_NOT_FOUND).send({
                     success: false,
                     message: 'User account failed to update. Try again.'
                 })

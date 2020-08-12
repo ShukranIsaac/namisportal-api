@@ -237,50 +237,13 @@ module.exports = async (req, res, next) => {
     if (uid) {
         uploadAndMap(req, res).then(upload => res.json(upload))
         .catch( err => next(err))
-    }
-    else{
+    } else {
         const url = req.baseUrl.split('/')[1]
-
 
         if (url === 'files'){
             justUpload(req, res)
                 .then(upload => res.json(upload))
                 .catch( err => next(err))
-        }
-
-        if(url === 'distribution-lines'){
-
-            try {
-                const file = await uploadTheFile(req, res)
-
-                const {fileName} = await readZip({file})
-
-                console.log(path.extname(fileName) === '.json')
-
-                if (path.extname(fileName) === '.geojson' || path.extname(fileName) === '.json'){
-                    const isclosed = await unzipFile({file, fileName})
-                    
-                    isclosed.on('out', async () => {
-                        console.log(path.extname(fileName) === '.json')
-                        console.log('end')
-                        try {
-                            const extracted = await readExtracted({fileName})
-                            console.log(extracted, 'hello')
-                            
-                        } catch (error) {
-                            console.log(error)
-                        }
-                    })
-                    
-                }
-
-                
-            } catch (error) {
-                console.log(error)
-                next(error)
-            }
-
-
         }
     }
 }

@@ -15,7 +15,7 @@ Category.belongsToMany(Category, {
     through: SubCategory, 
     as: 'category', 
     foreignKey: {
-        onDelete: 'SET NULL',
+        onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
         allowNull: true,
         name: "category"
@@ -26,7 +26,7 @@ Category.belongsToMany(Category, {
     through: SubCategory, 
     as: 'subCategories', 
     foreignKey: {
-        onDelete: 'SET NULL',
+        onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
         allowNull: true,
         name: "subcategory"

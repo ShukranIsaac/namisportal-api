@@ -53,11 +53,14 @@ module.exports = {
                     }
 
                     const { dataValues: {
-                        category, id, ...rest} 
+                        category, id, shortname, ...rest} 
                     } = response;
 
                     return res.status(Status.STATUS_OK)
-                    .send(Object.assign(rest, { subCategories: subCategories(rest) }))
+                    .send(Object.assign(rest, { 
+                        shortName: shortname,
+                        subCategories: subCategories(rest) 
+                    }))
                 }).catch(error => {
                     console.log(error)
                     res.status(Status.STATUS_BAD_REQUEST).send({
