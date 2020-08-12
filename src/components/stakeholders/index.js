@@ -5,6 +5,7 @@ const jwtm = require('../../middlewares/jwt')
 const stakeholderService = require('./service')
 const fileUploadMiddleware = require('../files/upload.middleware')
 const Status = require('../status.codes')
+const { STATUS_OK } = require('../status.codes')
 
 router.get('/', getAllStakeholders)
 router.get('/:uid', getOneStakeholder)
@@ -18,9 +19,15 @@ router.use('/:uid/files', /*jwtm,*/ fileUploadMiddleware)
 module.exports = router
 
 async function getAllStakeholders(req, res, next)  {
-    const { baseUrl, query: {name}} = req
-    return await stakeholderService.getAll(name)
-        .then(stakeholders => res.json(stakeholders))
+    return await stakeholderService.getAll()
+        .then(stakeholders => {
+            const dataList = stakeholders.map(({ 
+                dataValues: { contacts, ...rest } 
+            }) => Object.assign(rest, { 
+                contacts: contacts[0].dataValues 
+            }))
+            return res.status(STATUS_OK).send(dataList);
+        })
         .catch(err => next(err))
 }
 

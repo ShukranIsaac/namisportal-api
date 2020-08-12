@@ -58,7 +58,7 @@ async function getOneCategory({params: {uid}}, res, next)  {
                 })
             }
 
-            const { dataValues: { category, id, ...rest } } = response;
+            const { dataValues: { category, id, shortname, ...rest } } = response;
 
             // TODO: Finish here
             const cateSubs = categoriesService.subCategories(rest)
@@ -70,6 +70,7 @@ async function getOneCategory({params: {uid}}, res, next)  {
 
             return res.status(Status.STATUS_OK)
                 .send(Object.assign(rest, { 
+                    shortName: shortname,
                     subCategories: cateSubs 
                 }))
         })

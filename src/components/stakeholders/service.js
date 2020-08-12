@@ -4,38 +4,22 @@ const Status = require('../status.codes')
 const Contact = require('../contacts/model')
 
 module.exports = {
-    getAll: async (name) => {
-        if (name !== undefined){
-            return await Stakeholder.findOne({
-                name: name,
-                include: [{
-                    model: Contact,
-                    as: 'contacts',
-                    attributes: {
-                        exclude: ['id']
-                    },
-                    through: {
-                        attributes: []
-                    }
-                }]
-            })
-        } else {
-            return await Stakeholder.findAll({
+    getAll: async () => {
+        return await Stakeholder.findAll({
+            attributes: {
+                exclude: ['id', 'typeId']
+            },
+            include: [{
+                model: Contact,
+                as: 'contacts',
                 attributes: {
-                    exclude: ['id', 'typeId']
+                    exclude: ['id', '_id', 'createdAt', 'updatedAt']
                 },
-                include: [{
-                    model: Contact,
-                    as: 'contacts',
-                    attributes: {
-                        exclude: ['id']
-                    },
-                    through: {
-                        attributes: []
-                    }
-                }]
-            })
-        }
+                through: {
+                    attributes: []
+                }
+            }]
+        })
     },
 
     getStakeholderById: async (id) => await Stakeholder.findOne({

@@ -85,9 +85,10 @@ module.exports = {
             }).then(categories => {
                 res.status(Status.STATUS_OK)
                     .send(categories.map(({ dataValues: {
-                        category, id, ...rest
+                        category, id, shortname, ...rest
                     } }) => {
                         return Object.assign(rest, { 
+                            shortName: shortname,
                             subCategories: rest.subCategories.map(({
                                 _id, ...rest
                             })=>_id) 
