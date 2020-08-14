@@ -56,7 +56,7 @@ module.exports = {
                     }
 
                     const { dataValues: {
-                        category, id, shortname, ...rest} 
+                        categoryId, id, shortname, ...rest} 
                     } = response;
 
                     return res.status(Status.STATUS_OK)
