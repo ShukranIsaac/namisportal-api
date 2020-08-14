@@ -63,8 +63,9 @@ async function getOneCategory({params: {uid}}, res, next)  {
             // TODO: Finish here
             const cateSubs = categoriesService.subCategories(rest)
             // const subs = cateSubs.subCategories.map(({
-            //     dataValues: { category, id, ...rest }
+            //     dataValues: { category, id, shortname, ...rest }
             // })=> Object.assign(rest, {
+            //     shortName: shortname,
             //     subCategories: categoriesService.subCategories(rest)
             // }));
 
@@ -118,18 +119,13 @@ async function updateCategory({params: {uid}, body}, res, next)  {
         }).catch(err => next(err))
 }
 
-async function doUpdate(category, {
-    name, shortName, about
-}, res) {
-    await category.update({ name, shortname: shortName, about })
+async function doUpdate(category, body, res) {
+    await category.update(body)
 
     return await category.reload()
 
-    .then(_category => _category ? 
-        res.status(Status.STATUS_OK).send({
-            success: true,
-            message: "Category successfully updated."
-        }) : 
+    .then(({ dataValues: { id, categoryId, ...rest }}) => rest ? 
+        res.status(Status.STATUS_OK).send(rest) : 
         res.status(Status.STATUS_INTERNAL_SERVER_ERROR).send({
             success: false,
             message: 'Category resource failed to update. Try again.'
@@ -233,6 +229,7 @@ router.use('/:uid/files', /*jwtm,*/ fileUploadMiddleware)
 router.post('/:uid/sub-categories', /*jwtm,*/ addSubCategory)
 router.post('/:uid/main-sub-category', /*jwtm,*/ addMainSubcategory)
 router.patch('/:uid/', /*jwtm,*/ updateCategory)
+router.put('/:uid/', /*jwtm,*/ updateCategory)
 router.delete('/:uid/', /*jwtm,*/ deleteCategory)
 
 router.post('/:uid/documents', addDocument)

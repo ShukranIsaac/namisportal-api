@@ -42,8 +42,8 @@ User.belongsToMany(Role, { through: UserRole, as: 'roles', foreignKey: 'userid' 
 
 (async () => {
     await PostgresORM.sync()
-    .then(() => console.log('Tables created successfully'))
-    .catch(error => console.log('Failed to create database tables: ', error))
+        .then(() => console.log('Tables created successfully: '))
+        .catch(error => console.log('Failed to create database schema: ', error))
 })()
 
 module.exports = {

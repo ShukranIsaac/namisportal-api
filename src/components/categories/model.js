@@ -1,36 +1,22 @@
 const Sequelize = require('sequelize');
 const PostgresORM = require('../config/database.config');
 
-const SubCategory = require('./sub.model');
+// const SubCategory = require('./sub.model');
 
 const Category = PostgresORM.define('categories', {
     _id: { type: Sequelize.STRING, unique: true, allowNull: false },
     name: { type: Sequelize.STRING, unique: true, allowNull: false },
     about: { type: Sequelize.TEXT, allowNull: false },
     shortname: { type: Sequelize.STRING, allowNull: false },
-    content: {type: Sequelize.TEXT, allowNull: true}
+    content: {type: Sequelize.TEXT, allowNull: true},
+    level: {type: Sequelize.INTEGER, allowNull: true}
 });
 
-Category.belongsToMany(Category, { 
-    through: SubCategory, 
-    as: 'category', 
-    foreignKey: {
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
-        allowNull: true,
-        name: "category"
-    } 
-});
-
-Category.belongsToMany(Category, { 
-    through: SubCategory, 
+Category.hasMany(Category, { 
     as: 'subCategories', 
-    foreignKey: {
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
-        allowNull: true,
-        name: "subcategory"
-    } 
-});
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+})
+Category.belongsTo(Category)
 
 module.exports = Category;

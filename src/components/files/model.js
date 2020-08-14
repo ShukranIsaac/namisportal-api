@@ -3,7 +3,7 @@ const PostgresORM = require('../config/database.config');
 const Category = require('../categories/model');
 const Stakeholder = require('../stakeholders/model');
 
-const File = PostgresORM.define('files', {
+const File = PostgresORM.define('documents', {
     _id: { type: Sequelize.STRING, unique: true, allowNull: false },
     name: { type: Sequelize.STRING, unique: true, allowNull: true },
     description: { type: Sequelize.TEXT, allowNull: true },
@@ -12,10 +12,10 @@ const File = PostgresORM.define('files', {
     filename: { type: Sequelize.STRING, allowNull: false }
 });
 
-File.hasMany(Category)
-Category.belongsTo(File)
+Category.hasMany(File)
+File.belongsTo(Category)
 
-File.hasMany(Stakeholder)
-Stakeholder.belongsTo(File)
+Stakeholder.hasMany(File)
+File.belongsTo(Stakeholder)
 
 module.exports = File

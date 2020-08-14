@@ -1,6 +1,7 @@
 const Category = require('./model')
 const UIDGenerator = require('../uuid.generate');
 const Status = require('../status.codes');
+const File = require('../files/model');
 
 const attributes = {
     exclude: ['id']
@@ -27,20 +28,22 @@ module.exports = {
                         include: [{
                             model: Category,
                             as: 'subCategories',
-                            all: true,
+                            attributes: {
+                                exclude: ['id', 'categoryId']
+                            }
+                        }, {
+                            model: File, 
                             attributes: {
                                 exclude: ['id']
-                            },
-                            through: {
-                                attributes: []
                             }
                         }],
-                        all: true,
+                        attributes: {
+                            exclude: ['id', 'categoryId']
+                        }
+                    }, {
+                        model: File, 
                         attributes: {
                             exclude: ['id']
-                        },
-                        through: {
-                            attributes: []
                         }
                     }]
                 })
@@ -77,15 +80,18 @@ module.exports = {
                     all: true,
                     attributes: {
                         exclude: ['id']
-                    },
-                    through: {
-                        attributes: []
+                    }
+                }, {
+                    model: File,
+                    // as: 'documents', 
+                    attributes: {
+                        exclude: ['id']
                     }
                 }]
             }).then(categories => {
                 res.status(Status.STATUS_OK)
                     .send(categories.map(({ dataValues: {
-                        category, id, shortname, ...rest
+                        category, id, shortname, categoryId, ...rest
                     } }) => {
                         return Object.assign(rest, { 
                             shortName: shortname,
@@ -118,31 +124,38 @@ module.exports = {
             attributes: {
                 exclude: ['id']
             },
-            through: {
-                attributes: []
-            },
             include: [{
                 model: Category,
                 as: 'subCategories',
                 include: [{
                     model: Category,
                     as: 'subCategories',
-                    all: true,
                     attributes: {
                         exclude: ['id']
-                    },
-                    through: {
-                        attributes: []
+                    }
+                }, {
+                    model: File,
+                    as: 'documents', 
+                    attributes: {
+                        exclude: ['id']
                     }
                 }],
-                all: true,
                 attributes: {
                     exclude: ['id']
-                },
-                through: {
-                    attributes: []
                 }
-            }],
+            }, {
+                model: File,
+                as: 'documents', 
+                attributes: {
+                    exclude: ['id']
+                }
+            }]
+        }, {
+            model: File,
+            as: 'documents', 
+            attributes: {
+                exclude: ['id']
+            }
         }]
     }),
 
@@ -182,9 +195,12 @@ module.exports = {
                 all: true,
                 attributes: {
                     exclude: ['id']
-                },
-                through: {
-                    attributes: []
+                }
+            }, {
+                model: File,
+                as: 'documents', 
+                attributes: {
+                    exclude: ['id']
                 }
             }]
         }).then(categories => {
@@ -240,14 +256,10 @@ module.exports = {
             about,
             content
         }).then(({ dataValues: {
-            category, id, ...rest
+            id, categoryId, ...rest
         } }) => {
             if(rest) {
-                res.status(Status.STATUS_OK)
-                    .json({
-                        status: true,
-                        message: `${name} successfully created`
-                    });
+                res.status(Status.STATUS_OK).json(rest);
             } else {
                 res.status(Status.STATUS_INTERNAL_SERVER_ERROR)
                     .json({
@@ -287,13 +299,11 @@ module.exports = {
             // Sub Category id just created
             const sub_category_id = await getCategoryId(categoryId);
 
-            await mainCategory.addSubCategory([ sub_category_id ]).then(sub => {
-                res.status(Status.STATUS_OK)
-                    .send({
-                        success: true,
-                        message: 'Sub-category successfully created'
-                    })
-            });
+            await mainCategory.addSubCategory([ sub_category_id ])
+                .then(() => {
+                    const {dataValues : { id, categoryId, ...rest }} = sub_category;
+                    res.status(Status.STATUS_OK).send(rest)
+                });
         } else {
             return new Promise((resolve, reject) => {
                 return reject(`Category with id ${ id } does not exists`)
