@@ -8,6 +8,8 @@ const categoriesService = require('../categories/service')
 const stakeholdersServise = require('../stakeholders/service')
 const unzip = require('unzip')
 const zlib = require('zlib');
+const Stakeholder = require('../stakeholders/model');
+const Category = require('../categories/model');
 
 const MAGIC_NUMBERS = {
     jpg: 'ffd8ffe0',
@@ -41,34 +43,42 @@ function checkMagicNumbers(magic) {
 }
 
 function uploadAndMap(req, res){
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try{
             const url = req.baseUrl.split('/')[1]
-
             if (url === 'stakeholders'){
-                stakeholdersServise.getById(req.params.uid)
-                .then(async stakeholder => {
+                const directory = await stakeholdersServise.getById(req.params.uid)
+                if(directory) {
                     const file = await uploadTheFile(req, res)
-                    console.log(file)
-                    // fileService.createOne(file)
-                    //     .then(( {filename}) => {
-                    //         stakeholder.image = `/files/images/${filename}`
-                    //         resolve(stakeholder.save())
-                    //     })
-                    //     .catch(err => reject(err))
-                }) 
+                    const created = await fileService.createOne(file)
+                    if (created) {
+                        await Stakeholder.update({ 
+                            image: `/files/images/${created.dataValues.filename}` 
+                        }, {
+                            where: {_id: directory.dataValues._id}
+                        })
+                        resolve(await directory.reload())
+                    } else {
+                        reject(created)
+                    }
+                }
+
+                directory.catch(error => reject(error))
             } else if(url === 'categories') {
-                categoriesService.getById(req.params.uid)
-                    .then(async category => {
-                        const file = await uploadTheFile(req, res)
+                const category = await categoriesService.getById(req.params.uid)
+                if(category) {
+                    const file = await uploadTheFile(req, res)
+                    const created = await fileService.createOne(file)
+                    if (created) {
+                        await category.addDocument(created)
                         
-                        fileService.createOne(file)
-                            .then(({ dataValues: { _id } }) => {
-                                category.documents.push({_id})
-                                resolve(category.save())
-                            })
-                            .catch(err => reject(err))
-                    })
+                        resolve(await category.reload())
+                    } else {
+                        reject(created)
+                    }
+                }
+
+                category.catch(error => reject(error))
             } else {
                 reject(new Error('Invalid URL, please check'))
             }
@@ -112,32 +122,31 @@ function uploadTheFile(req, res){
     return new Promise((resolve, reject) => {
         const upload = multer({ storage: storage}).single('file');
             
-            upload(req, res, (err) => {
-                if (err) {
-                    reject(err)
-                }
+        upload(req, res, (err) => {
+            if (err) {
+                reject(err)
+            }
 
-                const bitmap = fs.readFileSync(destinationDirectory + req.file.filename).toString('hex', 0, 4);
+            const bitmap = fs.readFileSync(destinationDirectory + req.file.filename).toString('hex', 0, 4);
+            
+            if (!checkMagicNumbers(bitmap)) {
+                fs.unlinkSync(destinationDirectory + req.file.filename);
+                reject(new Error('File not valid'))
+            } else {
+                const { path, size, filename } = req.file
                 
-                if (!checkMagicNumbers(bitmap)) {
-                    fs.unlinkSync(destinationDirectory + req.file.filename);
-                    reject(new Error('File not valid'))
-                } else {
-                    const { path, size, filename } = req.file
-
-                    let file = {}
-                    if (req.body){
-                        const { name, description } = req.body
-                        
-                        file = { name, path, size, filename, description }
-                    } else {
-                        file = { path, size, filename}
-                    }
+                let file = {}
+                if (req.body){
+                    const { name, description } = req.body
                     
-                    resolve(file)
+                    file = { name, path, size, filename, description }
+                } else {
+                    file = { path, size, filename}
                 }
-    
-            });
+                
+                resolve(file)
+            }
+        });
     })
 }
 
@@ -216,8 +225,9 @@ module.exports = async (req, res, next) => {
     }
 
     if (uid) {
-        uploadAndMap(req, res).then(upload => res.json(upload))
-        .catch( err => next(err))
+        uploadAndMap(req, res)
+            .then(upload => res.json(upload))
+            .catch( err => next(err))
     } else {
         const url = req.baseUrl.split('/')[1]
 

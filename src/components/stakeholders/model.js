@@ -9,7 +9,7 @@ const Stakeholder = PostgresORM.define('stakeholders', {
     about: { type: Sequelize.TEXT, allowNull: false },
     mission: { type: Sequelize.TEXT, allowNull: false },
     vision: { type: Sequelize.TEXT, allowNull: false },
-    image: { type: Sequelize.TEXT, allowNull: true }
+    image: { type: Sequelize.TEXT, unique: true, allowNull: true }
 });
 
 const StakeholderType = PostgresORM.define('types', {

@@ -9,7 +9,7 @@ const attributes = {
 
 const subCategories = category => category.subCategories.map(({ 
     dataValues: {
-        category, id, subCategories,...restSub
+        categoryId, id, subCategories, ...restSub
     } 
 })=> {
     return Object.assign(restSub, { 
@@ -95,9 +95,12 @@ module.exports = {
                     } }) => {
                         return Object.assign(rest, { 
                             shortName: shortname,
+                            documents: rest.documents.map(({
+                                _id, ...rest
+                            })=>_id),
                             subCategories: rest.subCategories.map(({
                                 _id, ...rest
-                            })=>_id) 
+                            })=>_id)
                         });
                     }))
             }).catch(error => {
@@ -132,7 +135,7 @@ module.exports = {
                     as: 'subCategories',
                     attributes: {
                         exclude: ['id']
-                    }
+                    },
                 }, {
                     model: File,
                     as: 'documents', 
@@ -160,10 +163,7 @@ module.exports = {
     }),
 
     getDocuments: async (id) => (
-        await Category
-                .findById(id)
-                .populate('documents')
-                .lean()
+        await Category.findById(id)
     ),
 
     addDocument: async (id, docId) => {
@@ -212,6 +212,14 @@ module.exports = {
                         _id, ...rest
                     })=>_id) 
                 })))
+            // res.status(Status.STATUS_OK)
+            //     .send(categories.map(({ dataValues: {
+            //         category, id, ...rest
+            //     } }) => Object.assign(rest, { 
+            //         subCategories: rest.subCategories.map(({
+            //             _id, ...rest
+            //         })=> rest.dataValues) 
+            //     })))
         }).catch(error => {
             console.log(error)
             res.status(400).send({

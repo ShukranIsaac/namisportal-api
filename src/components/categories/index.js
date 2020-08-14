@@ -58,21 +58,20 @@ async function getOneCategory({params: {uid}}, res, next)  {
                 })
             }
 
-            const { dataValues: { category, id, shortname, ...rest } } = response;
+            const { dataValues: { categoryId, id, shortname, ...rest } } = response;
 
-            // TODO: Finish here
-            const cateSubs = categoriesService.subCategories(rest)
-            // const subs = cateSubs.subCategories.map(({
-            //     dataValues: { category, id, shortname, ...rest }
-            // })=> Object.assign(rest, {
-            //     shortName: shortname,
-            //     subCategories: categoriesService.subCategories(rest)
-            // }));
+            // const cateSubs = categoriesService.subCategories(rest)
+            const subs = rest.subCategories.map(({
+                dataValues: { categoryId, id, shortname, ...rest }
+            })=> Object.assign(rest, {
+                shortName: shortname,
+                subCategories: categoriesService.subCategories(rest)
+            }));
 
             return res.status(Status.STATUS_OK)
                 .send(Object.assign(rest, { 
                     shortName: shortname,
-                    subCategories: cateSubs 
+                    subCategories: subs 
                 }))
         })
         .catch(err => res.status(Status.STATUS_INTERNAL_SERVER_ERROR).send({
@@ -83,8 +82,8 @@ async function getOneCategory({params: {uid}}, res, next)  {
 
 async function getDocuments({params: {uid}}, res, next)  {
     return await categoriesService.getDocuments(uid)
-        .then( categories => res.json(categories.documents))
-        .catch( err => next(err))
+        .then(categories => res.json(categories.documents))
+        .catch(err => next(err))
 }
 
 function getSubCategories({params: {uid}}, res, next)  {
