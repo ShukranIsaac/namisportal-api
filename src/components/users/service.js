@@ -9,6 +9,7 @@ const Status = require('../status.codes');
 const nodemailer = require("nodemailer");
 const smtpTransport = require('nodemailer-smtp-transport');
 const UIDGenerator = require('../uuid.generate');
+const { Op } = require('sequelize');
 
 const attributes = [ 
     '_id', 'username', 
@@ -415,111 +416,115 @@ async function myCustomMethod(ctx){
 }
 
 async function accountReset({ body, params, headers }, res, next) {
+    const account = await User.findOne({
+        where: { resetPasswordToken: params.token }
+    });
+
+    const resetAccount = async (props, callback) => {
+        await account.update(props)
+        callback()
+    }
+
     async.waterfall([
         function(done) {
-            // TODO: Verify token is valid and active
-            User.findOne({ 
-                resetPasswordToken: params.token, 
-                resetPasswordExpires: { $gt: Date.now() } }, 
-                function(err, user) {
-                    if (!user) {
-                        return next(res.status(401).json({
-                            error: 'Password reset token is invalid or has expired.'
-                        }))
+            if (account) {
+                resetAccount({ 
+                    where: { 
+                        resetPasswordToken: params.token, 
+                        resetPasswordExpires: { [Op.gt]: Date.now() } 
                     }
+                }, () => {
+                    const { password, ...userWithoutHash } = account;
+                    const token = jwt.sign({ sub: account.id }, config.secret);
 
-                    user.password = bcrypt.hashSync(body.password, 10);
-                    // user.resetPasswordToken = undefined;
-                    // user.resetPasswordExpires = undefined;
-
-                    user.save(function(err) {
-                        const { password, ...userWithoutHash } = user;
-                        const token = jwt.sign({ sub: user.id }, config.secret);
-
-                        done(err, { ...userWithoutHash, token})
-                    });
-                });
-            },
-            function(user, done) {
-                let transport = nodemailer.createTransport(smtpTransport({
-                    host: 'smtp.gmail.com',
-                    secure: true,
-                    port: 465,
-                    pool: true,
-                    auth: {
-                        type: 'custom',
-                        // forces Nodemailer to use custom handler
-                        method: 'MY-CUSTOM-METHOD', 
-                        user: "minigridzada@gmail.com",
-                        pass: "@M1nigrids"
-                    },
-                    customAuth: {
-                        'MY-CUSTOM-METHOD': myCustomMethod
-                    }
-                }));
-
-                const mailOptions = {
-                    to: user.email,
-                    from: 'minigridzada@gmail.com',
-                    subject: 'Your password has been changed',
-                    text: 'Hello '+ user.username +',\n\n' +
-                    'This is a confirmation that the password for your account ' + user.email + ' has just been changed.\n' +
-                    'http://' + headers.host + '/login\n\n' +
-                    'Yours\n' + 'The Portal Admin\n'
-                };
-
-                transport.sendMail(mailOptions, function(err) {
-                    if(err) done(err, 'done');
-
-                    res.status(200).json({
-                        success: 'Success! Password changed'
-                    })
-                });
-
-                transport.close();
+                    done(null, { ...userWithoutHash, token})
+                })
+            } else {
+                if (!user) {
+                    return next(res.status(401).json({
+                        error: 'Password reset token is invalid or has expired.',
+                        success: false
+                    }))
+                }
             }
-        ], function(err) {
+        }, function(user, done) {
+            let transport = nodemailer.createTransport(smtpTransport({
+                host: 'smtp.gmail.com',
+                secure: true,
+                port: 465,
+                pool: true,
+                auth: {
+                    type: 'custom',
+                    // forces Nodemailer to use custom handler
+                    method: 'MY-CUSTOM-METHOD', 
+                    user: "minigridzada@gmail.com",
+                    pass: "@M1nigrids"
+                },
+                customAuth: {
+                    'MY-CUSTOM-METHOD': myCustomMethod
+                }
+            }));
+
+            const mailOptions = {
+                to: user.email,
+                from: 'minigridzada@gmail.com',
+                subject: 'Your password has been changed',
+                text: 'Hello '+ user.username +',\n\n' +
+                'This is a confirmation that the password for your account ' + user.email + ' has just been changed.\n' +
+                'http://' + headers.host + '/login\n\n' +
+                'Yours\n' + 'The Portal Admin\n'
+            };
+
+            transport.sendMail(mailOptions, function(err) {
+                if(err) done(err, 'done');
+
+                res.status(200).json({
+                    success: 'Success! Password changed'
+                })
+            });
+
+            transport.close();
+        }], function(err) {
             if (err) return next(res.status(400).json({ 
                 status: "Failed to reset password("+ 
-                body.email +"). Please try again" 
+                account.dataValues.email +"). Please try again" 
             }));
         }
     );    
 }
 
-function accountRecovery({ body }, res, next) {
+async function accountRecovery({ body }, res, next) {
+    const account = await User.findOne({
+        where: { email: body.email }
+    });
+
+    const accountUpdate = async (props, callback) => {
+        await account.update(props)
+        callback()
+    }
+
     async.waterfall([
         function(done) {
-            // const token = jwt.sign({ sub: body.email }, config.secret);
-
-            // if(!token) return next(res.json({
-            //     error: "Failed to generate auth token!"
-            // }))
-
-            // token && done(err, token);
-            
+            // generate unique reset token
             crypto.randomBytes(20, function(err, buf) {
                 var token = buf.toString('hex');
                 done(err, token);
             });
-        },
-        function(token, done) {
-            User.findOne({ email: body.email }, function(err, user) {
+        }, function(token, done) {
+            if (account) {
                 const response = { 
                     error: 'No user account with ' + body.email + "as email",
                 };
 
-                if (!user) {
+                if (!account) {
                     return res.status(401).json(response);
                 }
     
-                user.resetPasswordToken = token;
-                user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-    
-                user.save(function(err) {
-                    done(err, token, user)
-                });
-            });
+                accountUpdate({ 
+                    resetPasswordToken: token,
+                    resetPasswordExpires: Date.now() + 3600000
+                }, () => done(null, token, account))
+            }
         },
         function(token, user, done) {
             let transport = nodemailer.createTransport(smtpTransport({

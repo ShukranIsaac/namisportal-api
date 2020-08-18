@@ -2,6 +2,7 @@ const Category = require('./model')
 const UIDGenerator = require('../uuid.generate');
 const Status = require('../status.codes');
 const File = require('../files/model');
+const { Op } = require("sequelize");
 
 const attributes = {
     exclude: ['id']
@@ -56,14 +57,21 @@ module.exports = {
                     }
 
                     const { dataValues: {
-                        categoryId, id, shortname, ...rest} 
+                        categoryId, id, ...rest} 
                     } = response;
 
                     return res.status(Status.STATUS_OK)
-                    .send(Object.assign(rest, { 
-                        shortName: shortname,
-                        subCategories: subCategories(rest) 
-                    }))
+                        .send(Object.assign(rest, { 
+                            shortName: rest.shortname,
+                            subCategories: rest.subCategories.map(({ 
+                                dataValues: { shortname, ...props }
+                            }) => {
+                                return ({
+                                    shortName: shortname,
+                                    ...props
+                                })
+                            })
+                        }))
                 }).catch(error => {
                     console.log(error)
                     res.status(Status.STATUS_BAD_REQUEST).send({
@@ -161,10 +169,23 @@ module.exports = {
             }
         }]
     }),
+    
+    getDocuments: async (id) => {
+        const category = await Category.findOne({
+            where: { _id: id }
+        })
 
-    getDocuments: async (id) => (
-        await Category.findById(id)
-    ),
+        return await File.findAll({
+            where: { 
+                categoryId: {
+                    [Op.eq]: category.id
+                } 
+            },
+            attributes: {
+                exclude: ['id', 'stakeholderId']
+            } 
+        })
+    },
 
     addDocument: async (id, docId) => {
         try {

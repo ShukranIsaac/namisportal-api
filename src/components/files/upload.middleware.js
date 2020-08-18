@@ -65,17 +65,17 @@ function uploadAndMap(req, res){
 
                 directory.catch(error => reject(error))
             } else if(url === 'categories') {
-                const category = await categoriesService.getById(req.params.uid)
+                const category = await Category.findOne({
+                    where: { _id: req.params.uid }
+                })
+                
                 if(category) {
                     const file = await uploadTheFile(req, res)
                     const created = await fileService.createOne(file)
-                    if (created) {
-                        await category.addDocument(created)
-                        
-                        resolve(await category.reload())
-                    } else {
-                        reject(created)
-                    }
+                    // console.log(category.dataValues.id)
+                    await created.update({ categoryId: category.id })
+                    // console.log(f.dataValues)
+                    resolve(await category.reload())
                 }
 
                 category.catch(error => reject(error))
@@ -90,31 +90,19 @@ function uploadAndMap(req, res){
 }
 
 async function updateFile(req, res){
+    const document = await fileService.getById(req.params.uid)
+
     if (req.file){
         const file = await uploadTheFile(req, res)
         const {name, ...fileWOname} = file
 
-        try {
-            const document = await fileService.getByIdMongooseUse(req.params.uid)
-    
-            return fileService.update(document, fileWOname)
-                .then(updatedFile => Promise.resolve(updatedFile))
-                .catch(error => Promise.reject(error))
-
-        } catch (error) {
-            return Promise.reject(error)
-        }
+        return await fileService.update(document, fileWOname)
+            .then(updatedFile => Promise.resolve(updatedFile))
+            .catch(error => Promise.reject(error))
     } else {
-        try {
-            const document = await fileService.getById(req.params.uid)
-
-            return fileService.update(document, req.body)
-                .then(updatedFile => Promise.resolve(updatedFile))
-                .catch(error => Promise.reject(error))
-    
-        } catch (error) {
-            return Promise.reject(error)
-        }
+        return await fileService.update(document, req.body)
+            .then(updatedFile => Promise.resolve(updatedFile))
+            .catch(error => Promise.reject(error))
     }
 }
 

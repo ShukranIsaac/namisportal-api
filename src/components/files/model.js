@@ -12,10 +12,16 @@ const File = PostgresORM.define('documents', {
     filename: { type: Sequelize.STRING, allowNull: false }
 });
 
-Category.hasMany(File)
+Category.hasMany(File, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+})
 File.belongsTo(Category)
 
-Stakeholder.hasMany(File)
+Stakeholder.hasMany(File, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+})
 File.belongsTo(Stakeholder)
 
 module.exports = File

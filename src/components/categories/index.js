@@ -82,7 +82,7 @@ async function getOneCategory({params: {uid}}, res, next)  {
 
 async function getDocuments({params: {uid}}, res, next)  {
     return await categoriesService.getDocuments(uid)
-        .then(categories => res.json(categories.documents))
+        .then(documents => res.json(documents))
         .catch(err => next(err))
 }
 

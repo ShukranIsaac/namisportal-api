@@ -3,9 +3,9 @@ const UIDGenerator = require('../uuid.generate')
 
 module.exports = {
     getAll: async () =>  await File.findAll(),
-    getById: async (id) => await File.findById(id),
-    getCategory: async (id) => await File.findById(id),
-    getByIdUse: async (id) => await File.findById(id),
+    getById: async (id) => await File.findOne({ where: { _id:id }}),
+    getCategory: async (id) => await File.findOne({ where: { _id:id }}),
+    getByIdUse: async (id) => await File.findOne({ where: { _id:id }}),
     createOne: async (newFile) => await File.create({
         _id: UIDGenerator.UUID(),
         ...newFile

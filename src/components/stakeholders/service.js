@@ -90,7 +90,7 @@ module.exports = {
             where: { _id:id }
         });
         console.log(stakeholder)
-        return updateStakeholderImage;
+        return stakeholder;
     },
 
     delete: async (id) => await Stakeholder.destroy()                                                                                                       
