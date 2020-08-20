@@ -93,7 +93,30 @@ module.exports = {
         return stakeholder;
     },
 
-    delete: async (id) => await Stakeholder.destroy()                                                                                                       
+    delete: async (id) => {
+        try {
+            if (await Stakeholder.findOne({ where: { _id:id }})) {
+                await Stakeholder.destroy({
+                    where: { _id: id }
+                })
+    
+                return Promise.resolve({
+                    success: true,
+                    message: "Stakeholder successfully deleted."
+                })   
+            } else {
+                return Promise.resolve({
+                    success: false,
+                    message: `Stakeholder with id ${ id } does not exist.`
+                }) 
+            }
+        } catch (error) {
+            return Promise.reject({
+                success: false,
+                message: error
+            })
+        }
+    }                                                                                                       
 }
 
 const getContactId = async id => {

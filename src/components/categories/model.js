@@ -17,6 +17,9 @@ Category.hasMany(Category, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
 })
-Category.belongsTo(Category)
+Category.belongsTo(Category, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+})
 
 module.exports = Category;

@@ -14,7 +14,7 @@ router.post('/', addStakeholder)
 router.patch('/:uid', updateStakeholder)
 router.put('/:uid', updateStakeholder)
 router.delete('/:uid', deleteStakeholder)
-router.use('/:uid/files', /*jwtm,*/ fileUploadMiddleware)
+router.use('/:uid/files', jwtm, fileUploadMiddleware)
 
 module.exports = router
 

@@ -8,6 +8,10 @@ const attributes = {
     exclude: ['id']
 };
 
+const capitalize = (character) => {
+    return character && character[0].toUpperCase() + character.slice(1).toLowerCase();
+}
+
 const subCategories = category => category.subCategories.map(({ 
     dataValues: {
         categoryId, id, subCategories, ...restSub
@@ -19,10 +23,14 @@ const subCategories = category => category.subCategories.map(({
 })
 
 module.exports = {
-    all: async ({ name }, res, next) => {
-        if (name !== undefined && name !== null) {
+    all: async ({ name, level }, res, next) => {
+        const NAME = name && name === 'Faqs' 
+            ? name.substring(0, name.length - 1).toUpperCase() 
+            + [...name][name.length - 1].toLowerCase() : name;
+
+        if (NAME !== undefined && NAME !== null) {
             return await Category.findOne({ 
-                    where: { name: name },
+                    where: { name: NAME },
                     include: [{
                         model: Category,
                         as: 'subCategories',
@@ -52,7 +60,7 @@ module.exports = {
                     if (!response) {
                         return res.status(Status.STATUS_NOT_FOUND).send({
                             success: false,
-                            message: 'No category with name: ' + name
+                            message: 'No category with name: ' + NAME
                         })
                     }
 
@@ -79,6 +87,26 @@ module.exports = {
                         message: error,
                     })
                 })
+        } else if(level) {
+            return await Category.findAll({ 
+                attributes,
+                where: { level },
+            }).then(categories => {
+                res.status(Status.STATUS_OK)
+                    .send(categories.map(({ dataValues: {
+                        category, id, shortname, categoryId, ...rest
+                    } }) => {
+                        return Object.assign(rest, { 
+                            shortName: shortname
+                        });
+                    }))
+            }).catch(error => {
+                console.log(error)
+                res.status(400).send({
+                    success: false,
+                    error,
+                })
+            })
         } else {
             return await Category.findAll({ 
                 attributes,
@@ -266,7 +294,8 @@ module.exports = {
             name,
             shortName,
             about,
-            content
+            content,
+            level
         }
     }, res, next) {
         if (await Category.findOne({
@@ -283,7 +312,8 @@ module.exports = {
             name,
             shortname: shortName,
             about,
-            content
+            content,
+            level
         }).then(({ dataValues: {
             id, categoryId, ...rest
         } }) => {

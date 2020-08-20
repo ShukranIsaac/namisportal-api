@@ -16,12 +16,18 @@ Category.hasMany(File, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
 })
-File.belongsTo(Category)
+File.belongsTo(Category, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+})
 
 Stakeholder.hasMany(File, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
 })
-File.belongsTo(Stakeholder)
+File.belongsTo(Stakeholder, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+})
 
 module.exports = File
