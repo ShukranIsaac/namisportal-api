@@ -1,7 +1,9 @@
+const fs = require('fs');
 const Category = require('./model')
 const UIDGenerator = require('../uuid.generate');
 const Status = require('../status.codes');
 const File = require('../files/model');
+const fileService = require('../files/service')
 const { Op } = require("sequelize");
 
 const attributes = {
@@ -225,13 +227,26 @@ module.exports = {
         }
     },
 
-    removeDocument: async (id, docId) => {
-        try {
-            const category = await Category.findById(id)
-            category.documents.pull(docId)
-            return await category.save()
-        } catch (error) {
-            return Promise.reject(error)
+    removeDocument: async (id, docId) => {  
+        const doc = await fileService.getById(docId)
+        const category = await Category.findOne({ where: {_id: id} })
+
+        if (doc.dataValues._id && category) {
+            if (await fileService.delete(docId)) {
+                return fs.unlink(`${__dirname}/../../../docs/${doc.dataValues.filename}`, function(error) {
+                    if(error) return Promise.reject({
+                        message: "Failed to delete document from file System"
+                    })
+                    return Promise.resolve({
+                        message: "Document successfully deleted"
+                    })
+                })
+            }
+            return Promise.reject("Failed to delete document from database")
+        } else {
+            return Promise.reject({
+                message: "Document does not exist: " + docId
+            })
         }
     },
 

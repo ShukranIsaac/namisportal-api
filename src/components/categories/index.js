@@ -13,8 +13,9 @@ async function removeDocument(req, res, next){
         const file = await fileServise.getById(docId)
 
         if(file){
-            return categoriesService.removeDocument(uid, docId)
-                .then(categoryWithRemovedDoc => res.json(categoryWithRemovedDoc))
+            return await categoriesService.removeDocument(uid, docId)
+                .then(categoryWithRemovedDoc => res.status(200)
+                    .json(categoryWithRemovedDoc))
                 .catch(error => next(error))
         }
     } catch (error) {

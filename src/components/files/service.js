@@ -10,7 +10,7 @@ module.exports = {
         _id: UIDGenerator.UUID(),
         ...newFile
     }),
-    delete: async (id) => await File.destroy(id),
+    delete: async (id) => await File.destroy({ where: { _id:id }}),
     update: async (document, props) => {
         await document.update(props)
         return await document.reload();
