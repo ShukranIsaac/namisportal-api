@@ -276,14 +276,6 @@ module.exports = {
                         _id, ...rest
                     })=>_id) 
                 })))
-            // res.status(Status.STATUS_OK)
-            //     .send(categories.map(({ dataValues: {
-            //         category, id, ...rest
-            //     } }) => Object.assign(rest, { 
-            //         subCategories: rest.subCategories.map(({
-            //             _id, ...rest
-            //         })=> rest.dataValues) 
-            //     })))
         }).catch(error => {
             console.log(error)
             res.status(400).send({

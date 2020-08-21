@@ -71,14 +71,3 @@ async function addNews({body}, res, next){
         .then( newNews => res.json(newNews) )
         .catch( err => next(err))
 }
-
-async function addFile({params: uid}, res, next){
-    return await newsService.createOne(body)
-        .then( newNews => res.json(newNews) )
-        .catch( err => next(err))
-}
-
-async function doUpdate(document, props){
-    document.set(props)
-    return await document.save()
-}

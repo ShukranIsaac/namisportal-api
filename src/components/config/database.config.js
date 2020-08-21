@@ -8,8 +8,7 @@ module.exports = new Sequelize(process.env.DATABASE_URL, {
     database: process.env.DATABASE_NAME,
     logging: logger.bind(this), //(...msg) => console.log(msg) or false
     pool: {
-        max: 10,
-        min: 0,
+        max: 1,
         // acquire: 30000,
         // idle: 10000
     },
