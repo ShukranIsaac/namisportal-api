@@ -10,7 +10,6 @@ if (process.env.NODE_ENV !== 'production'){
     require('dotenv').config()
 }
 
-const news = require('./components/news')
 const files = require('./components/files')
 const users = require('./components/users')
 const contacts = require('./components/contacts')
@@ -35,7 +34,6 @@ app.use('/stakeholders', stakeHolders)
 app.use('/categories', categories)
 app.use('/contacts', contacts)
 app.use('/files', files)
-app.use('/news', news)
 
  // use JWT auth to secure the api
 app.use('/users', users)
