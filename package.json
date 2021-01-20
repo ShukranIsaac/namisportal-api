@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "nodemon src",
-    "preinstall": "npx npm-force-resolutions",
+    "preinstall": "npm npm-force-resolutions",
     "migrate": "node src/migrations",
     "test": "jest"
   },
