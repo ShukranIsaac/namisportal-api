@@ -203,6 +203,7 @@ module.exports = {
         }]
     }),
 
+    // TODO: Do not update the password when other fields are being updated
     update: async (id, userParam, res) => {
         let user = await User.findOne({
             where: { _id: id }
@@ -218,13 +219,7 @@ module.exports = {
 
         if(userParam.username) {
             if (user.username !== userParam.username && await User.findOne({ 
-                where: { 
-                    username: userParam.username
-                    // [Op.or]: [{
-                    //     username: userParam.username, 
-                    //     email: userParam.email 
-                    // }]
-                }
+                where: { username: userParam.username }
             })) {
                 return Promise.reject({
                     success: false,
