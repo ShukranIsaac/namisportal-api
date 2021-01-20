@@ -22,7 +22,14 @@ module.exports = new Sequelize('postgres://vdssmrfbnomigk:198b00bd8259c15f4e7e28
     password: "198b00bd8259c15f4e7e2836a779535568dce85b5e189fce9cbd8e81568b3264",
     user: "vdssmrfbnomigk",
     database: "dldjaab0u9g55",
+    host: "ec2-34-194-198-176.compute-1.amazonaws.com",
     logging: logger.bind(this), //(...msg) => console.log(msg) or false
+    dialectOptions: {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false // <<<<<<< YOU NEED THIS
+        }
+    },
     pool: {
         max: 10,
         // acquire: 30000,
