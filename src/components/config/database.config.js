@@ -1,14 +1,30 @@
 const Sequelize = require('sequelize');
 const logger = require('morgan');
 
-module.exports = new Sequelize(process.env.DATABASE_URL, {
-    dialect: process.env.DATABASE_DIALECT,
-    password: process.env.DATABASE_PASSWORD,
-    user: process.env.DATABASE_USER,
-    database: process.env.DATABASE_NAME,
+// module.exports = new Sequelize(process.env.DATABASE_URL, {
+//     dialect: process.env.DATABASE_DIALECT,
+//     password: process.env.DATABASE_PASSWORD,
+//     user: process.env.DATABASE_USER,
+//     database: process.env.DATABASE_NAME,
+//     logging: logger.bind(this), //(...msg) => console.log(msg) or false
+//     pool: {
+//         max: 1,
+//         // acquire: 30000,
+//         // idle: 10000
+//     },
+//     // isolation level of each transaction
+//     // defaults to dialect default
+//     isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.REPEATABLE_READ
+// });
+
+module.exports = new Sequelize('postgres://postgres@localhost:5432/namisportal', {
+    dialect: "postgres",
+    password: "namisportal",
+    user: "postgres",
+    database: "xrt12@14m",
     logging: logger.bind(this), //(...msg) => console.log(msg) or false
     pool: {
-        max: 1,
+        max: 10,
         // acquire: 30000,
         // idle: 10000
     },
