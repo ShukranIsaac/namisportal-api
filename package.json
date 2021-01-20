@@ -5,10 +5,14 @@
   "main": "src/index.js",
   "scripts": {
     "start": "nodemon src",
+    "preinstall": "npx npm-force-resolutions",
     "migrate": "node src/migrations",
     "test": "jest"
   },
-  "author": "Paul Sembereka",
+  "resolutions": {
+    "graceful-fs": "^4.2.4"
+  },
+  "author": "Isaac S. Mwakabira",
   "license": "MIT",
   "dependencies": {
     "JSONStream": "^1.3.5",
@@ -24,7 +28,7 @@
     "express-jwt": "^5.3.1",
     "express-session": "^1.15.6",
     "fstream": "^1.0.12",
-    "graceful-fs": "^4.2.2",
+    "graceful-fs": "^4.2.4",
     "helmet": "^3.23.3",
     "jsonwebtoken": "^8.4.0",
     "mkdirp": "^0.5.1",
