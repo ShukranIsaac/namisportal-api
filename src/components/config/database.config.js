@@ -17,6 +17,8 @@ const logger = require('morgan');
 //     isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.REPEATABLE_READ
 // });
 
+// psql -h ec2-34-194-198-176.compute-1.amazonaws.com -p 5432 -d dldjaab0u9g55 -U vdssmrfbnomigk -W -f namisportaldump.sql
+
 module.exports = new Sequelize('postgres://vdssmrfbnomigk:198b00bd8259c15f4e7e2836a779535568dce85b5e189fce9cbd8e81568b3264@ec2-34-194-198-176.compute-1.amazonaws.com:5432/dldjaab0u9g55', {
     dialect: "postgres",
     password: "198b00bd8259c15f4e7e2836a779535568dce85b5e189fce9cbd8e81568b3264",
@@ -33,7 +35,8 @@ module.exports = new Sequelize('postgres://vdssmrfbnomigk:198b00bd8259c15f4e7e28
     pool: {
         max: 10,
         // acquire: 30000,
-        // idle: 10000
+        // idle: 100,
+        // maxUses: Infinity
     },
     // isolation level of each transaction
     // defaults to dialect default
