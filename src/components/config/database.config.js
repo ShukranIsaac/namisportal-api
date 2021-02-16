@@ -1,15 +1,15 @@
 const Sequelize = require('sequelize');
 const logger = require('morgan');
 
-const DATABASE_URL = 'postgres://namis@localhost:5432/namisportal'
+const DATABASE_URL = process.env.NODE_ENV !== 'production'? `${process.env.DATABASE_URL}` : 'postgres://namis@localhost:5432/namisportal'
 
-const DATABASE_USER = 'namis'
+const DATABASE_USER = process.env.NODE_ENV !== 'production'? `${process.env.DATABASE_USER}` : 'namis'
 
-const DATABASE_PASSWORD = 'namis@123'
+const DATABASE_PASSWORD = process.env.NODE_ENV !== 'production'? `${process.env.DATABASE_PASSWORD}` : 'namis@123'
 
-const DATABASE_DIALECT = 'postgres'
+const DATABASE_DIALECT = process.env.NODE_ENV !== 'production'? `${process.env.DATABASE_DIALECT}` : 'postgres'
 
-const DATABASE_NAME = 'namisportal'
+const DATABASE_NAME = process.env.NODE_ENV !== 'production'? `${process.env.DATABASE_NAME}` : 'namisportal'
 
 module.exports = new Sequelize(DATABASE_URL, {
     dialect: DATABASE_DIALECT,

@@ -34,7 +34,7 @@ const accessLogStream = rfs.createStream('access.log', {
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cors())
-app.use(logger('[:date[web]] :method :url :status :res[content-length] - :remote-addr - :response-time ms'))
+app.use(logger('[:date[web]] :method :req[url] :status :res[content-length] - :remote-addr - :response-time ms'))
 app.use(logger('[:date[web]] :method :url :status :res[content-length] - :remote-addr - :response-time ms',
     { stream: accessLogStream }))
 
