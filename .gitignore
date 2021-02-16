@@ -2,3 +2,4 @@
 /docs
 /logs
 .env
+.development.env
