@@ -28,12 +28,13 @@ app.use(session({
 
 const accessLogStream = rfs.createStream('access.log', {
     interval: '1d', // rotate daily
-    path: path.join(__dirname, 'log')
+    path: path.join(__dirname, '../logs')
 })
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cors())
+app.use(logger('[:date[web]] :method :url :status :res[content-length] - :remote-addr - :response-time ms'))
 app.use(logger('[:date[web]] :method :url :status :res[content-length] - :remote-addr - :response-time ms',
     { stream: accessLogStream }))
 
