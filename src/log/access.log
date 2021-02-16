@@ -1,0 +1,4 @@
+[Tue, 16 Feb 2021 12:51:43 GMT] PATCH /users?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJKMkZwV1A5Wng4MCIsImlhdCI6MTYxMzQ2OTk0OCwiZXhwIjoxNjEzNDczNTQ4fQ.q-Fakx37egOBlR21T5x7icaSPGTPg6cUqjS2bcQFyuE 404 146 - ::ffff:127.0.0.1 - 2.798 ms
+[Tue, 16 Feb 2021 12:51:49 GMT] GET /users?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJKMkZwV1A5Wng4MCIsImlhdCI6MTYxMzQ2OTk0OCwiZXhwIjoxNjEzNDczNTQ4fQ.q-Fakx37egOBlR21T5x7icaSPGTPg6cUqjS2bcQFyuE 401 59 - ::ffff:127.0.0.1 - 5.539 ms
+[Tue, 16 Feb 2021 12:52:21 GMT] GET /categories 200 12665 - ::ffff:127.0.0.1 - 3044.880 ms
+[Tue, 16 Feb 2021 12:52:59 GMT] GET /categories 200 12665 - ::ffff:127.0.0.1 - 3368.189 ms
